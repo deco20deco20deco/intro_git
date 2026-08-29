@@ -1,0 +1,257 @@
+<title>消えた案と残った案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --paper:#F1F2ED; --card:#FAFAF8;
+  --ink:#17211E; --ink-2:#4B5551; --ink-3:#7B847F;
+  --rule:#DCDFD6; --rule-soft:#E7E9E1;
+  --accent:#1F6F5C; --accent-soft:#E2EDE7;
+  --brass:#96780F; --brass-soft:#F0E9D2;
+  --alert:#A2333F; --alert-soft:#F3E2E2;
+  --shadow:0 1px 2px rgba(23,33,30,.05), 0 6px 18px rgba(23,33,30,.045);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1413; --card:#171E1C;
+    --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+    --rule:#2A3431; --rule-soft:#212A28;
+    --accent:#57B896; --accent-soft:#17322A;
+    --brass:#D3B061; --brass-soft:#2C2716;
+    --alert:#E2818A; --alert-soft:#331E20;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1413; --card:#171E1C;
+  --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+  --rule:#2A3431; --rule-soft:#212A28;
+  --accent:#57B896; --accent-soft:#17322A;
+  --brass:#D3B061; --brass-soft:#2C2716;
+  --alert:#E2818A; --alert-soft:#331E20;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+}
+
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:17px; line-height:1.9; font-feature-settings:"palt" 1; overflow-x:hidden;
+}
+.wrap{max-width:44rem;margin:0 auto;padding:0 20px 6rem;}
+@media (min-width:700px){ .wrap{padding:0 32px 8rem;} }
+
+.masthead{padding:3.2rem 0 2rem;border-bottom:1px solid var(--rule);}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 1rem;}
+h1{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:clamp(1.85rem,7.5vw,2.6rem);line-height:1.38;margin:0;text-wrap:balance;}
+.dek{color:var(--ink-2);font-size:.98rem;line-height:1.85;margin:1.1rem 0 0;}
+.dek strong{color:var(--ink);}
+
+nav{display:flex;flex-wrap:wrap;gap:.4rem;margin:1.7rem 0 0;}
+nav a{font-size:.78rem;text-decoration:none;color:var(--ink-2);border:1px solid var(--rule);border-radius:100px;padding:.3rem .72rem;background:var(--card);}
+nav a:hover{border-color:var(--accent);color:var(--accent);}
+nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+section{padding:3rem 0 0;}
+.sec-head{display:flex;gap:.75rem;align-items:baseline;margin:0 0 .2rem;}
+.sec-num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.78rem;color:var(--accent);flex:0 0 auto;padding-top:.1rem;}
+h2{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:1.38rem;line-height:1.5;margin:0;text-wrap:balance;}
+.sec-note{font-size:.88rem;color:var(--ink-3);line-height:1.75;margin:.5rem 0 1.3rem;}
+h3{font-size:.98rem;font-weight:700;margin:2.1rem 0 .8rem;color:var(--ink);padding-left:.7rem;border-left:3px solid var(--accent);line-height:1.6;}
+p{margin:1rem 0;color:var(--ink-2);}
+strong{color:var(--ink);font-weight:700;}
+em{font-style:normal;color:var(--accent);font-weight:700;}
+a{color:var(--accent);}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.84em;background:var(--accent-soft);color:var(--accent);padding:.05rem .32rem;border-radius:3px;word-break:break-all;}
+
+.item{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:1.05rem 1.1rem 1.15rem;margin:.85rem 0;box-shadow:var(--shadow);
+}
+.item.dead{border-color:var(--alert);border-width:1.5px;}
+.item.live{border-color:var(--accent);border-width:1.5px;}
+.item-top{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between;margin-bottom:.75rem;}
+.item-name{font-weight:700;font-size:1rem;line-height:1.5;flex:1;min-width:11rem;}
+.chip{font-size:.7rem;font-weight:700;letter-spacing:.05em;padding:.2rem .58rem;border-radius:100px;border:1px solid transparent;white-space:nowrap;}
+.chip.dead{background:var(--alert);color:var(--card);}
+.chip.live{background:var(--accent);color:var(--card);}
+.chip.wait{background:var(--brass-soft);color:var(--brass);border-color:var(--brass);}
+
+.fline{display:flex;flex-direction:column;gap:.15rem;padding:.6rem 0;border-top:1px solid var(--rule-soft);}
+.fline:first-of-type{border-top:0;padding-top:0;}
+.fline .k{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.67rem;letter-spacing:.09em;color:var(--ink-3);}
+.fline.ok .k{color:var(--accent);}
+.fline.bad .k{color:var(--alert);}
+.fline.todo .k{color:var(--brass);}
+.fline .v{font-size:.89rem;line-height:1.74;color:var(--ink-2);}
+.fline .v b{color:var(--ink);}
+@media (min-width:560px){
+  .fline{flex-direction:row;gap:.9rem;align-items:baseline;}
+  .fline .k{flex:0 0 4.4rem;}
+  .fline .v{flex:1;}
+}
+
+.calc{display:flex;flex-direction:column;margin:.5rem 0 0;}
+.calc div{display:flex;justify-content:space-between;gap:.9rem;align-items:baseline;padding:.38rem 0;border-bottom:1px solid var(--rule-soft);font-size:.86rem;}
+.calc div:last-child{border-bottom:0;}
+.calc .k{color:var(--ink-3);font-size:.82rem;}
+.calc .v{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap;text-align:right;}
+.calc .v.lo{color:var(--alert);font-weight:500;}
+
+.run{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:.9rem 1rem;margin:.85rem 0;box-shadow:var(--shadow);
+}
+.run-name{font-weight:700;font-size:.94rem;margin-bottom:.35rem;line-height:1.5;}
+.run-body{font-size:.88rem;line-height:1.74;color:var(--ink-2);}
+.cmd{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.78rem;line-height:1.85;
+  background:var(--paper);border:1px solid var(--rule);border-radius:7px;
+  padding:.6rem .75rem;margin:.55rem 0 0;overflow-x:auto;white-space:pre;color:var(--ink-2);
+}
+
+.warn{border-left:3px solid var(--alert);background:var(--alert-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.3rem 0;font-size:.89rem;line-height:1.78;color:var(--ink-2);}
+.warn b{color:var(--ink);}
+.callout{border-left:3px solid var(--brass);background:var(--brass-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.3rem 0;font-size:.89rem;line-height:1.78;color:var(--ink-2);}
+.callout b{color:var(--ink);}
+
+ul.plain{list-style:none;padding:0;margin:1rem 0;display:flex;flex-direction:column;gap:.7rem;}
+ul.plain li{font-size:.91rem;line-height:1.78;color:var(--ink-2);padding-left:1.1rem;position:relative;}
+ul.plain li::before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+.src{font-size:.8rem;line-height:1.8;color:var(--ink-3);}
+.src a{color:var(--ink-2);}
+footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-size:.78rem;line-height:1.8;color:var(--ink-3);}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">全案の潰し込み / 検証ボード</p>
+  <h1>消えた案と<br>残った案</h1>
+  <p class="dek">全案を一次情報で潰しにいった結果。<strong>ショートドラマは市場ごと閉じました</strong>——法務でグロース側が消え、経済性で供給側も消えたので、両側から塞がった形です。残る山場は2つの数字で、どちらも手元で走らせれば確定します。</p>
+
+  <nav>
+    <a href="#closed">閉じた案</a>
+    <a href="#pending">数字待ちの案</a>
+    <a href="#alive">生きている案</a>
+    <a href="#run">走らせるもの</a>
+    <a href="#blocked">実行できなかった理由</a>
+  </nav>
+</header>
+
+<section id="closed">
+  <div class="sec-head"><span class="sec-num">01</span><h2>閉じた案</h2></div>
+
+  <div class="item dead">
+    <div class="item-top"><span class="item-name">海外A　ショートドラマ（市場ごと閉鎖）</span><span class="chip dead">終了</span></div>
+    <div class="fline bad"><span class="k">グロース側</span><span class="v">現職がアプリのグロース支援そのものを役務として売っているため、在職中は不可。<b>前回この理由で撤回済み。</b></span></div>
+    <div class="fline bad"><span class="k">供給側</span><span class="v"><b>今回これも潰れた。</b>「制作してライセンスする側なら安全」と書いたが、実際の取引条件を確認したところ、副業で入れる商売ではなかった。</span></div>
+    <div class="fline bad"><span class="k">実勢</span><span class="v">
+      <div class="calc">
+        <div><span class="k">1シリーズ（60〜90話）の買い切り価格</span><span class="v">$150K〜250K</span></div>
+        <div><span class="k">1作品あたりの制作費の実例</span><span class="v">約$140K（6日撮影）</span></div>
+        <div><span class="k">プロデューサーフィー</span><span class="v">10〜15%</span></div>
+        <div><span class="k">投稿窓口</span><span class="v lo">なし（studio-to-studio）</span></div>
+      </div>
+    </span></div>
+    <div class="fline bad"><span class="k">意味</span><span class="v">買い切り価格に対して制作費が張り付いていて、<b>差益は薄く、当たり外れのリスクは制作側が負う</b>。しかもオープンな投稿窓口がなく、入口が「スタジオ同士の商談」。<b>週15時間の副業が入れる隙間はありません。</b></span></div>
+    <div class="fline ok"><span class="k">結論</span><span class="v">この市場は諦める。<b>私が2回勧めて2回とも外した案</b>なので、率直に言えば最初の見立てが甘かった。市場の大きさに引きずられて、参入位置の検証を後回しにしました。</span></div>
+  </div>
+
+  <div class="item dead">
+    <div class="item-top"><span class="item-name">④　全国アリーナ観戦ガイド</span><span class="chip dead">単体では終了</span></div>
+    <div class="fline bad"><span class="k">理由</span><span class="v">価値の源泉（座席表・見え方）が他人の著作物で、自動生成と噛み合わない。③を作る場合の集客導線としてのみ残す。</span></div>
+  </div>
+</section>
+
+<section id="pending">
+  <div class="sec-head"><span class="sec-num">02</span><h2>数字待ちの案</h2></div>
+  <p class="sec-note">どちらも「あと1つの数字」で生死が決まるところまで来ている。スクリプトは用意した。</p>
+
+  <div class="item">
+    <div class="item-top"><span class="item-name">①　上場企業の広告宣伝費DB</span><span class="chip wait">網羅率待ち</span></div>
+    <div class="fline ok"><span class="k">確定</span><span class="v">広告宣伝費は標準タクソノミの要素 <code>jppfs_cor:AdvertisingExpensesSGA</code> として定義済み。<b>企業ごとの勘定科目の名寄せは不要</b>——ここが最大の懸念だったが、外れた。</span></div>
+    <div class="fline ok"><span class="k">確定</span><span class="v">EDINET API v2 は無料のSubscription-Keyで使える。書類一覧で <code>csvFlag=1</code> のものだけが本体を取得でき、CSVは<b>UTF-16のタブ区切り</b>。</span></div>
+    <div class="fline bad"><span class="k">未確定</span><span class="v"><b>販管費の内訳を開示している企業の割合。</b>調べた限り「企業によっては詳細を出していない」とされ、さらに<b>日本基準・米国基準・IFRSで扱いが違う</b>。公表された実測値は見つからなかったので、自分で数えるしかない。</span></div>
+    <div class="fline todo"><span class="k">決め方</span><span class="v">網羅率 <b>60%以上→作る／30〜60%→業種を絞って再判定／30%以下→捨てる</b>。<code>scripts/edinet_coverage.py</code> が業種別の明細CSVまで出す。</span></div>
+  </div>
+
+  <div class="item">
+    <div class="item-top"><span class="item-name">②　補助金の差分監視</span><span class="chip wait">とどめ待ち</span></div>
+    <div class="fline bad"><span class="k">確定</span><span class="v">jGrants APIは認証不要＝参入障壁ゼロ。既存プレイヤー（1万件規模を謳うサイトを含む）も個人開発SaaSも既にある。<b>「全国の補助金を検索できる」はもう商品ではない。</b></span></div>
+    <div class="fline todo"><span class="k">残る問い</span><span class="v">生き返る余地は2つだけ。<b>仮説A：市区町村の独自補助金がjGrantsにほとんど載っていない</b>なら、そこが手つかずの領域。<b>仮説B：レコードに更新日時があり差分検知ができる</b>なら、商品を「検索」から「プッシュ」に寄せられる。</span></div>
+    <div class="fline todo"><span class="k">決め方</span><span class="v"><code>scripts/jgrants_probe.py</code> が総件数・フィールド一覧・対象地域の分布を出す。<b>「全国」比率が高ければ作り直せる。地域単位の補助金も十分載っていれば、捨てる。</b></span></div>
+  </div>
+</section>
+
+<section id="alive">
+  <div class="sec-head"><span class="sec-num">03</span><h2>生きている案</h2></div>
+
+  <div class="item live">
+    <div class="item-top"><span class="item-name">海外B　FASTチャンネル</span><span class="chip live">唯一の海外案</span></div>
+    <div class="fline ok"><span class="k">確定</span><span class="v">競業リスクが最も低く、かつ「勝手に回る度」が最も高い。ショートドラマが消えたので、<b>海外はこれ1本になりました。</b></span></div>
+    <div class="fline ok"><span class="k">確定</span><span class="v">在庫は潤沢。Internet Archive の Moving Images には100万本以上が上がっており、Prelinger Archive など<b>用途を問わず使えるパブリックドメイン作品が数千本規模で存在する</b>。</span></div>
+    <div class="fline bad"><span class="k">落とし穴</span><span class="v"><b>「映像の権利が切れている＝使える」ではない。</b>作品本体がパブリックドメインでも、<b>劇伴音楽・第三者の素材・出演者の権利が別に生きている</b>ことがある。FASTでは広告収益化の権利までクリアされている必要があるため、<b>在庫探しの本体は権利確認</b>です。</span></div>
+    <div class="fline todo"><span class="k">次の1手</span><span class="v">「24時間◯◯だけ」と一言で言えるコンセプトを1つ決め、そのテーマで<b>権利がクリアな作品を30本集められるか</b>を試す。集まらなければテーマを変える。ここは私が手伝えます。</span></div>
+  </div>
+
+  <div class="item">
+    <div class="item-top"><span class="item-name">③　育成年代の大会結果DB</span><span class="chip live">生存・重い</span></div>
+    <div class="fline ok"><span class="k">確定</span><span class="v">高体連は<b>都道府県 × 競技でサイトが完全に分散</b>し、統一フォーマットは存在しない。中体連の機械可読データも見つからない。<b>非整形度が高いという仮説は当たり＝機会は本物。</b></span></div>
+    <div class="fline bad"><span class="k">代償</span><span class="v">取得先が数百に分散。<b>3案で最も構築コストが高い。</b></span></div>
+    <div class="fline bad"><span class="k">先行条件</span><span class="v">未成年の個人情報。<b>掲載ポリシーと削除請求の窓口を、コードより先に用意する必要がある</b>——後付けが効かない類型。</span></div>
+    <div class="fline todo"><span class="k">次の1手</span><span class="v">1競技 × 1県 × 過去3年を実際に構造化して、かかった時間を測る。全国の総コストはそこから逆算する。</span></div>
+  </div>
+</section>
+
+<section id="run">
+  <div class="sec-head"><span class="sec-num">04</span><h2>走らせるもの</h2></div>
+  <p class="sec-note">どちらも標準ライブラリだけで動く。構文と動作経路は確認済み（外部通信の直前まで正常に進む）。</p>
+
+  <div class="run">
+    <div class="run-name">① 広告宣伝費DBの生死を決める</div>
+    <div class="run-body">Subscription-Key の取得は無料で即時。取得後にそのまま実行すると、途中経過を出しながら最後に網羅率と判定を表示します。<b>--sample 200 でおよそ15〜25分。</b></div>
+    <div class="cmd">export EDINET_KEY=取得したキー
+python3 scripts/edinet_coverage.py --days 400 --sample 200</div>
+  </div>
+
+  <div class="run">
+    <div class="run-name">② 補助金案にとどめを刺す（か、生き返らせる）</div>
+    <div class="run-body">認証不要なので、そのまま実行できます。<b>数分で終わります。</b></div>
+    <div class="cmd">python3 scripts/jgrants_probe.py</div>
+  </div>
+
+  <div class="callout"><b>結果をここに貼ってください。</b>数字を読んで、①を作るか捨てるか、②を作り直すか捨てるかを確定させます。そのうえで残った案の実装計画に進みます。</div>
+</section>
+
+<section id="blocked">
+  <div class="sec-head"><span class="sec-num">05</span><h2>私の側で実行できなかった理由</h2></div>
+  <p>APIを直接叩いて数字まで出すつもりでしたが、<strong>この実行環境の外向き通信が組織のネットワークポリシーで遮断されています</strong>。<code>api.edinet-fsa.go.jp</code> と <code>api.jgrants-portal.go.jp</code> はいずれも CONNECT が 403 で拒否され、コマンドライン経由でもページ取得経由でも到達できませんでした。許可されているのはパッケージレジストリなど一部のホストのみです。</p>
+  <p>そこで、<strong>実行だけを手元に渡す形</strong>にしました。判定基準はスクリプトの中に埋め込んであるので、出力の最後に「作る／捨てる」まで出ます。<strong>あなたがやるのはコピペ2回です。</strong></p>
+
+  <div class="warn"><b>検証で分かった一番大事なこと。</b>今回、私が勧めた案が2つ潰れました（補助金＝競合調査不足、ショートドラマ＝参入位置の検証不足）。どちらも<b>構造は正しかったが、実勢価格と既存プレイヤーを見ていなかった</b>ために起きています。以後の案は、<b>「作れるか」より先に「いくらで売られているか」と「誰が既にやっているか」</b>を確認します。</div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">§</span><h2>参照した情報</h2></div>
+  <p class="src">
+    <a href="https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/download/ESE140206.pdf">EDINET API 仕様書（Version 2）／金融庁</a>　·
+    <a href="https://ceruleanart.net/sga2">販管費の内訳はどこに開示されているか</a>　·
+    <a href="https://www.jgrants-portal.go.jp/open-api">jGrants API／デジタル庁</a>　·
+    <a href="https://www.theindiehustle.com/p/vertical-drama-two-ways-a-producer">Vertical drama, two ways: a producer and app developer</a>　·
+    <a href="https://www.character.app/blog/where-to-publish-vertical-drama">Where to Publish a Vertical Drama (2026)</a>　·
+    <a href="https://www.hollywoodreporter.com/business/business-news/vancouver-vertical-microdrama-factory-1236451859/">How Vancouver Became a Vertical Microdrama Factory</a>　·
+    <a href="https://archive.org/details/publicmovies212">Public Domain Movies／Internet Archive</a>　·
+    <a href="https://www.zen-koutairen.com/">全国高等学校体育連盟</a>
+  </p>
+</section>
+
+<footer>
+  検証の総括：30案 → 上位5案 → 4案 → いま生きているのは<b>①（数字待ち）②（とどめ待ち）③（重いが本物）、海外はFAST1本</b>。案は減りましたが、減った分だけ確度は上がっています。<b>潰れた案の数は、進捗の指標です。</b>
+</footer>
+
+</div>

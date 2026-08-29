@@ -36,6 +36,8 @@
 - [金で時間を買う設計](docs/business/budget-unlocked.html) — 予算制約なし前提でのCAC×LTV計算、30案の再ランク、買収という選択肢（20260829）
 - [生き残った案](docs/business/verification-and-global.html) — 上位4案のデータ実在性・競合の一次情報検証と、海外マス層向け動画2案（20260829）
 - [在職中の線引き](docs/business/legal-screen.html) — 現職の事業範囲と照合した競業リスクの仕分け、事業ごとの法規制論点（20260829）
+- [消えた案と残った案](docs/business/verification-board.html) — 全案の潰し込み結果と、生死を決める2数値の実行手順（20260829）
+- 検証スクリプト: [`scripts/edinet_coverage.py`](scripts/edinet_coverage.py)（広告宣伝費の開示網羅率）／[`scripts/jgrants_probe.py`](scripts/jgrants_probe.py)（jGrantsの網羅範囲と差分検知の可否）
 
 ## データ準備チェックリスト
 
