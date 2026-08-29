@@ -1,0 +1,378 @@
+<title>金で時間を買う設計</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --paper:#F1F2ED; --card:#FAFAF8;
+  --ink:#17211E; --ink-2:#4B5551; --ink-3:#7B847F;
+  --rule:#DCDFD6; --rule-soft:#E7E9E1;
+  --accent:#1F6F5C; --accent-soft:#E2EDE7;
+  --brass:#96780F; --brass-soft:#F0E9D2;
+  --alert:#A2333F; --alert-soft:#F3E2E2;
+  --shadow:0 1px 2px rgba(23,33,30,.05), 0 6px 18px rgba(23,33,30,.045);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1413; --card:#171E1C;
+    --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+    --rule:#2A3431; --rule-soft:#212A28;
+    --accent:#57B896; --accent-soft:#17322A;
+    --brass:#D3B061; --brass-soft:#2C2716;
+    --alert:#E2818A; --alert-soft:#331E20;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1413; --card:#171E1C;
+  --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+  --rule:#2A3431; --rule-soft:#212A28;
+  --accent:#57B896; --accent-soft:#17322A;
+  --brass:#D3B061; --brass-soft:#2C2716;
+  --alert:#E2818A; --alert-soft:#331E20;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+}
+
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:17px; line-height:1.9; font-feature-settings:"palt" 1; overflow-x:hidden;
+}
+.wrap{max-width:44rem;margin:0 auto;padding:0 20px 6rem;}
+@media (min-width:700px){ .wrap{padding:0 32px 8rem;} }
+
+.masthead{padding:3.2rem 0 2rem;border-bottom:1px solid var(--rule);}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 1rem;}
+h1{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:clamp(1.85rem,7.5vw,2.6rem);line-height:1.38;margin:0;text-wrap:balance;}
+.dek{color:var(--ink-2);font-size:.98rem;line-height:1.85;margin:1.1rem 0 0;}
+.dek strong{color:var(--ink);}
+.thesis{
+  font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;
+  font-size:1.05rem;line-height:1.82;color:var(--ink);
+  border-top:1px solid var(--accent);border-bottom:1px solid var(--accent);
+  padding:1.1rem 0;margin:1.5rem 0;text-wrap:balance;
+}
+.thesis em{font-style:normal;color:var(--accent);font-weight:700;}
+
+nav{display:flex;flex-wrap:wrap;gap:.4rem;margin:1.8rem 0 0;}
+nav a{font-size:.78rem;text-decoration:none;color:var(--ink-2);border:1px solid var(--rule);border-radius:100px;padding:.3rem .72rem;background:var(--card);}
+nav a:hover{border-color:var(--accent);color:var(--accent);}
+nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+section{padding:3rem 0 0;}
+.sec-head{display:flex;gap:.75rem;align-items:baseline;margin:0 0 .2rem;}
+.sec-num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.78rem;color:var(--accent);flex:0 0 auto;padding-top:.1rem;}
+h2{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:1.38rem;line-height:1.5;margin:0;text-wrap:balance;}
+.sec-note{font-size:.88rem;color:var(--ink-3);line-height:1.75;margin:.5rem 0 1.3rem;}
+h3{font-size:.98rem;font-weight:700;margin:2.1rem 0 .8rem;color:var(--ink);padding-left:.7rem;border-left:3px solid var(--accent);line-height:1.6;}
+p{margin:1rem 0;color:var(--ink-2);}
+strong{color:var(--ink);font-weight:700;}
+em{font-style:normal;color:var(--accent);font-weight:700;}
+
+/* before/after */
+.swap{display:flex;flex-direction:column;gap:.5rem;margin:1.2rem 0;}
+.swap-row{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:.85rem 1rem;box-shadow:var(--shadow);
+}
+.swap-lbl{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.67rem;letter-spacing:.1em;color:var(--ink-3);display:block;margin-bottom:.2rem;}
+.swap-row.now{border-color:var(--accent);border-width:1.5px;}
+.swap-row.now .swap-lbl{color:var(--accent);}
+.swap-txt{font-size:.93rem;line-height:1.74;color:var(--ink-2);}
+.swap-txt b{color:var(--ink);}
+
+/* math cards */
+.math{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:1rem 1.05rem 1.1rem;margin:.7rem 0;box-shadow:var(--shadow);
+}
+.math.go{border-color:var(--accent);border-width:1.5px;}
+.math.no{border-color:var(--alert);}
+.math-top{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between;margin-bottom:.7rem;}
+.math-name{font-weight:700;font-size:.98rem;line-height:1.5;}
+.chip{font-size:.71rem;font-weight:700;letter-spacing:.06em;padding:.22rem .6rem;border-radius:100px;border:1px solid transparent;white-space:nowrap;}
+.chip.go{background:var(--accent);color:var(--card);}
+.chip.mid{background:var(--brass-soft);color:var(--brass);border-color:var(--brass);}
+.chip.no{background:var(--alert-soft);color:var(--alert);border-color:var(--alert);}
+.calc{display:flex;flex-direction:column;}
+.calc div{
+  display:flex;justify-content:space-between;gap:.9rem;align-items:baseline;
+  padding:.42rem 0;border-bottom:1px solid var(--rule-soft);font-size:.87rem;
+}
+.calc div:last-child{border-bottom:0;}
+.calc .k{color:var(--ink-3);font-size:.82rem;}
+.calc .v{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  color:var(--ink);white-space:nowrap;text-align:right;
+}
+.calc .v.hi{color:var(--accent);font-weight:500;}
+.calc .v.lo{color:var(--alert);font-weight:500;}
+.math-note{font-size:.85rem;line-height:1.72;color:var(--ink-2);margin-top:.7rem;padding-top:.7rem;border-top:1px solid var(--rule);}
+.math-note b{color:var(--ink);}
+
+/* priority ladder */
+.ladder{display:flex;flex-direction:column;gap:.55rem;margin:1.1rem 0;}
+.rung{
+  display:flex;gap:.85rem;align-items:flex-start;
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:.9rem 1rem;box-shadow:var(--shadow);
+}
+.rung-n{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.72rem;color:var(--accent);
+  flex:0 0 auto;border:1px solid var(--accent);border-radius:50%;
+  width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;margin-top:.18rem;
+}
+.rung-body{flex:1;font-size:.9rem;line-height:1.74;color:var(--ink-2);}
+.rung-body b{color:var(--ink);display:block;margin-bottom:.1rem;}
+.rung-amt{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.76rem;
+  color:var(--ink-3);display:block;margin-top:.25rem;
+}
+
+/* rerank */
+.moves{display:flex;flex-direction:column;gap:1.3rem;margin:1.2rem 0;}
+.move-col{border-top:1px solid var(--rule);padding-top:.75rem;}
+.move-col h4{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.7rem;letter-spacing:.1em;margin:0 0 .6rem;font-weight:500;}
+.move-col.up{border-color:var(--accent);} .move-col.up h4{color:var(--accent);}
+.move-col.down{border-color:var(--alert);} .move-col.down h4{color:var(--alert);}
+.move-col.new{border-color:var(--brass);} .move-col.new h4{color:var(--brass);}
+.move-col ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.55rem;}
+.move-col li{font-size:.88rem;line-height:1.72;color:var(--ink-2);}
+.move-col li b{color:var(--ink);}
+.move-col li .n{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.74rem;color:var(--ink-3);margin-right:.3rem;}
+
+/* week plan */
+.week{display:flex;flex-direction:column;gap:.5rem;margin:1.1rem 0;}
+.wk{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:.85rem 1rem;box-shadow:var(--shadow);
+}
+.wk-top{display:flex;justify-content:space-between;gap:.8rem;align-items:baseline;margin-bottom:.3rem;}
+.wk-when{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.75rem;letter-spacing:.05em;color:var(--accent);white-space:nowrap;}
+.wk-cost{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.75rem;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.wk-body{font-size:.89rem;line-height:1.74;color:var(--ink-2);}
+.wk-body b{color:var(--ink);}
+.wk.final{border-color:var(--accent);border-width:1.5px;}
+
+.callout{border-left:3px solid var(--brass);background:var(--brass-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.3rem 0;font-size:.89rem;line-height:1.78;color:var(--ink-2);}
+.callout b{color:var(--ink);}
+.warn{border-left:3px solid var(--alert);background:var(--alert-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.3rem 0;font-size:.89rem;line-height:1.78;color:var(--ink-2);}
+.warn b{color:var(--ink);}
+
+ul.plain{list-style:none;padding:0;margin:1rem 0;display:flex;flex-direction:column;gap:.7rem;}
+ul.plain li{font-size:.91rem;line-height:1.78;color:var(--ink-2);padding-left:1.1rem;position:relative;}
+ul.plain li::before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-size:.78rem;line-height:1.8;color:var(--ink-3);}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">前提の書き換え / 予算制約なし</p>
+  <h1>金で時間を買う設計</h1>
+  <p class="dek">予算制約を外すと、制約が1つ減るのではなく<strong>構造が変わる</strong>。残る制約は週15時間だけになり、金はそれを緩める手段として使える。ただし——金で買えるものと買えないものは、はっきり分かれている。</p>
+
+  <div class="thesis">広告費が使えるということは <em>CACを払える</em> ということであって、<em>PMFを買える</em> ということではない。<br>だから最初に金を入れる先は出稿ではなく、<em>案の選別を1ヶ月で終わらせること</em>。</div>
+
+  <nav>
+    <a href="#model">制約モデル</a>
+    <a href="#math">広告が回る単価</a>
+    <a href="#order">金の使う順番</a>
+    <a href="#test">30案を4週で選別</a>
+    <a href="#rerank">30案の再ランク</a>
+    <a href="#buy">作らずに買う</a>
+  </nav>
+</header>
+
+<section id="model">
+  <div class="sec-head"><span class="sec-num">01</span><h2>制約モデルが書き換わる</h2></div>
+
+  <div class="swap">
+    <div class="swap-row">
+      <span class="swap-lbl">BEFORE</span>
+      <div class="swap-txt">制約は3つ。<b>時間（週15h） &gt; 資金（月3万） &gt; 実装力</b>。金がないので、実装も集客も自分の時間で払うしかなかった。だから「手作業で売れたものだけをコードにする」という順序になった。</div>
+    </div>
+    <div class="swap-row now">
+      <span class="swap-lbl">AFTER</span>
+      <div class="swap-txt">制約は<b>1つだけ。時間（週15h）</b>。資金は制約ではなく、時間を買う手段に変わる。実装力の不足も金で埋まる。<b>すると「自分でやる」前提そのものが不要になる</b>。</div>
+    </div>
+  </div>
+
+  <p>ここが一番大きい変化です。前の計画で「手作業で納品する」「インタビューを10件やる」としていたのは、<strong>金がないから時間で払うしかなかった</strong>だけであって、正しい順序だからではありません。金が使えるなら、同じ検証をもっと速い手段でやるべきです。</p>
+
+  <h3>金で買えるもの／買えないもの</h3>
+  <ul class="plain">
+    <li><strong>買えるもの。</strong>実装（業務委託・AI開発の並列化）、データ（有料API・データ購入・スクレイピング基盤）、検証速度（広告での需要テスト）、そして<strong>他人が作った既存の事業そのもの</strong>。</li>
+    <li><strong>買えないもの。</strong>PMF、リテンション、そして<strong>意思決定に使える自分の時間</strong>。週15時間という上限は金では動かない。だから金の使い道は、常に「自分の判断が必要な時間を減らす方向」に向けるのが正しい。</li>
+  </ul>
+</section>
+
+<section id="math">
+  <div class="sec-head"><span class="sec-num">02</span><h2>広告が回る単価はどれか</h2></div>
+  <p class="sec-note">月商50万を、有料集客で作れるかどうかは単価で決まる。3つのモデルで計算した。数字は日本のB2B/B2C SaaSでよく見る水準を置いたもので、実測ではない——<b>この計算式に自分の実測CPAを入れ直せる形にしてある</b>。</p>
+
+  <div class="math no">
+    <div class="math-top"><span class="math-name">B2C　月1,480円のサブスク</span><span class="chip no">広告では厳しい</span></div>
+    <div class="calc">
+      <div><span class="k">目標に必要な会員数</span><span class="v">338人</span></div>
+      <div><span class="k">月次解約率（想定）</span><span class="v">7%</span></div>
+      <div><span class="k">平均継続</span><span class="v">14ヶ月</span></div>
+      <div><span class="k">LTV（売上ベース）</span><span class="v">約21,000円</span></div>
+      <div><span class="k">許容CAC（LTV/CAC=3）</span><span class="v lo">約5,600円</span></div>
+      <div><span class="k">338人の獲得に必要な広告費</span><span class="v lo">約190万円</span></div>
+      <div><span class="k">回収までの期間</span><span class="v lo">約14ヶ月</span></div>
+    </div>
+    <div class="math-note">成立しないわけではないが、<b>190万円を14ヶ月寝かせる前払い</b>になる。しかも解約率の見積りが7%→10%にずれるだけでLTVが3割落ちて崩れる。<b>個人のキャッシュフローで踏むには、レバレッジが効きすぎている。</b></div>
+  </div>
+
+  <div class="math go">
+    <div class="math-top"><span class="math-name">B2B　月3万円</span><span class="chip go">最も回る</span></div>
+    <div class="calc">
+      <div><span class="k">目標に必要な社数</span><span class="v">17社</span></div>
+      <div><span class="k">月次解約率（想定）</span><span class="v">3%</span></div>
+      <div><span class="k">平均継続</span><span class="v">33ヶ月</span></div>
+      <div><span class="k">LTV（売上ベース）</span><span class="v">約99万円</span></div>
+      <div><span class="k">許容CAC（LTV/CAC=3）</span><span class="v hi">約33万円</span></div>
+      <div><span class="k">現実的なCAC（指名検索・課題検索）</span><span class="v hi">3〜15万円</span></div>
+      <div><span class="k">回収までの期間</span><span class="v hi">1〜5ヶ月</span></div>
+    </div>
+    <div class="math-note">許容CACが現実のCACを大きく上回る＝<b>広告を入れるほど伸びる領域</b>。しかも「補助金 検索」「入札 情報」のように<b>課題が顕在化した検索クエリが実在する</b>ので、リスティングが素直に効く。30案のⅢ（監視・差分検知）はこのモデル。</div>
+  </div>
+
+  <div class="math">
+    <div class="math-top"><span class="math-name">B2B　月10万円</span><span class="chip mid">回るが時間を食う</span></div>
+    <div class="calc">
+      <div><span class="k">目標に必要な社数</span><span class="v">5社</span></div>
+      <div><span class="k">LTV（30ヶ月想定）</span><span class="v">約300万円</span></div>
+      <div><span class="k">許容CAC</span><span class="v hi">約100万円</span></div>
+      <div><span class="k">回収までの期間</span><span class="v hi">1〜3ヶ月</span></div>
+      <div><span class="k">1社あたり月間工数</span><span class="v lo">10〜20時間</span></div>
+    </div>
+    <div class="math-note">経済性は最高だが、<b>この価格帯は必ず人が出ていく</b>（導入支援・定例・カスタマイズ）。週15時間の制約に直撃するので、<b>納品を外注できる設計になっているかどうか</b>だけが判断基準になる。</div>
+  </div>
+
+  <div class="callout"><b>結論。</b>金を入れるなら <b>B2B・月3万円前後・課題が検索される領域</b>。これはたまたま、30案のⅢ（監視・差分検知）がまるごと当てはまる。前回1位に置いた広告宣伝費DBは、実は<b>検索クエリが存在しない</b>ので広告と相性が悪く、順位が下がる。</div>
+</section>
+
+<section id="order">
+  <div class="sec-head"><span class="sec-num">03</span><h2>金を使う順番</h2></div>
+  <p class="sec-note">同じ金額でも、投じる順番で結果が変わる。上から順に投じること。</p>
+
+  <div class="ladder">
+    <div class="rung">
+      <span class="rung-n">1</span>
+      <div class="rung-body"><b>需要の検証</b>まだ何も作らない段階で、広告で「金を払う気があるか」を測る。ここが最も費用対効果が高い。<span class="rung-amt">30〜50万円 / 4週間</span></div>
+    </div>
+    <div class="rung">
+      <span class="rung-n">2</span>
+      <div class="rung-body"><b>実装の外注・並列化</b>検証を通った案だけを作る。自分は仕様と判断だけ持つ。週15時間の制約はここで初めて緩む。<span class="rung-amt">50〜150万円 / 案あたり</span></div>
+    </div>
+    <div class="rung">
+      <span class="rung-n">3</span>
+      <div class="rung-body"><b>データの購入・取得基盤</b>「誰も整形していないデータ」が堀になる型なので、取得に金を払えることは<b>そのまま参入障壁になる</b>。個人が金を出せない前提の競合を置き去りにできる。<span class="rung-amt">月5〜30万円</span></div>
+    </div>
+    <div class="rung">
+      <span class="rung-n">4</span>
+      <div class="rung-body"><b>本格的な広告出稿</b>リテンションが確認できてから。<b>ここを1番目に持ってくると、PMFがない事実を高い金で証明するだけになる。</b><span class="rung-amt">CAC×目標社数</span></div>
+    </div>
+  </div>
+
+  <div class="warn"><b>マーケターが陥りやすい順序ミス。</b>出稿力があると、4番から始めたくなる。だが解約率が確認できていない状態の広告は、穴の空いたバケツに水を注ぐ行為そのもの。<b>1番と4番の間には、必ずリテンションの実測を挟むこと。</b></div>
+</section>
+
+<section id="test">
+  <div class="sec-head"><span class="sec-num">04</span><h2>30案を4週間で選別する</h2></div>
+  <p class="sec-note">ここが今回いちばん変わるところ。前の計画では「インタビュー10件で2週間」だったが、金が使えるなら<b>もっと正確で速い手段がある</b>。あなたの職能がそのまま武器になる唯一の使い道でもある。</p>
+
+  <p>やることは単純です。<strong>30案のうち10案について、実在するかのようなLPを作り、リスティングで需要を買って、CPAで殴り合わせる。</strong>勘や好みではなく、<strong>「登録1件あたりいくらで取れたか」で案を選ぶ</strong>。案の選定を定量化するという、あなたの本業そのものです。</p>
+
+  <div class="week">
+    <div class="wk">
+      <div class="wk-top"><span class="wk-when">WEEK 1</span><span class="wk-cost">〜5万円</span></div>
+      <div class="wk-body">30案から10案を選ぶ。基準は<b>「課題が顕在化した検索クエリが実在するか」</b>だけ。キーワードプランナーで検索ボリュームを見て、ゼロの案はこの時点で落とす。<b>ここで半分は消える。</b></div>
+    </div>
+    <div class="wk">
+      <div class="wk-top"><span class="wk-when">WEEK 2</span><span class="wk-cost">〜10万円</span></div>
+      <div class="wk-body">10案分のLPを作る。1案1ページ、構成は共通テンプレで、<b>価格まで明示する</b>。CTAは「無料登録」ではなく<b>「事前登録して初月から使う（月◯円）」</b>にする——無料登録のCVRは需要の証明にならない。</div>
+    </div>
+    <div class="wk">
+      <div class="wk-top"><span class="wk-when">WEEK 3–4</span><span class="wk-cost">20〜30万円</span></div>
+      <div class="wk-body">10案 × 各2〜3万円をリスティングに投下。<b>同一予算・同一期間で並走させる</b>のが肝。集める指標は3つ：登録CPA、LP到達からの登録率、そして<b>「価格を見た後に進んだ率」</b>。</div>
+    </div>
+    <div class="wk final">
+      <div class="wk-top"><span class="wk-when">WEEK 5</span><span class="wk-cost">判定</span></div>
+      <div class="wk-body"><b>登録CPAが許容CACの1/3以下だった案</b>だけを残す。B2B月3万モデルなら、事前登録CPA <b>1万円以下</b>が目安（登録→受注が3割と見て、受注CAC 3.3万円）。ここを通った案に、優先順位2の実装費を投じる。</div>
+    </div>
+  </div>
+
+  <div class="callout"><b>この4週間の本当の価値。</b>30案のうちどれが当たるかは、正直この時点では誰にも分からない——私にも分かりません。だが<b>「分からないことを1ヶ月・50万円で確定させられる」</b>のが、金を持ったマーケターの最大の非対称性です。前の計画では、この選別に半年かかるはずでした。</div>
+
+  <div class="warn"><b>倫理と実務の線。</b>まだ存在しないサービスの事前登録を集める以上、LPには<b>提供開始時期を明記し、課金は開始時から</b>にすること。不成立だった案の登録者には理由を伝えて解散する。ここを雑にやると、次に本当に立ち上げるときの評判を失う。</div>
+</section>
+
+<section id="rerank">
+  <div class="sec-head"><span class="sec-num">05</span><h2>30案の再ランク</h2></div>
+  <p class="sec-note">「広告が使える」「データを買える」「実装を外注できる」の3つが効くことで、順位が入れ替わる。</p>
+
+  <div class="moves">
+    <div class="move-col up">
+      <h4>▲ 上がる</h4>
+      <ul>
+        <li><span class="n">11</span><b>補助金・助成金の差分監視</b>——課題が検索される・B2B月額・完全自走。広告が最も素直に効く。<b>新1位。</b></li>
+        <li><span class="n">13</span><b>入札・調達情報の配信</b>——同構造で、顧客の予算規模がさらに大きい。</li>
+        <li><span class="n">09</span><b>LP自動診断</b>——広告→無料診断→有料という王道ファネル。マーケターの土俵そのもの。</li>
+        <li><span class="n">15</span><b>採用市況モニター</b>——データ購入で一気に精度が上がる。金がない競合を置き去りにできる典型。</li>
+        <li><span class="n">16</span><b>業界特化のPDF帳票変換</b>——実装を外注できるなら、参入障壁が「業界の項目定義」だけになる。</li>
+      </ul>
+    </div>
+    <div class="move-col down">
+      <h4>▼ 下がる</h4>
+      <ul>
+        <li><span class="n">06</span><b>広告宣伝費DB</b>——専門性は最高だが<b>検索クエリが存在しない</b>。広告で獲得できない＝金の優位が効かない。前回1位から降格。</li>
+        <li><span class="n">01</span><b>観戦ガイド</b>——SEO前提で、時間を金で買えない領域。1ユーザーあたりの単価も低く、広告は絶対に合わない。</li>
+        <li><span class="n">26</span><b>用語辞典の量産</b>——元々ポリシーリスクが高い上に、金の優位が何も効かない。<b>落とす。</b></li>
+        <li><span class="n">24</span><b>週末イベント集約</b>——ローカル広告の単価では広告費を正当化できない。</li>
+      </ul>
+    </div>
+    <div class="move-col new">
+      <h4>＋ 新しく解禁される</h4>
+      <ul>
+        <li><b>有料データを原資にした案</b>——POS、位置情報、求人、企業データベース。前の計画で「法人契約なので断念」としたものが全部戻ってくる。<b>金を出せることが、そのまま堀になる。</b></li>
+        <li><b>複数案の同時立ち上げ</b>——実装を外注できるなら、検証を通った2〜3案を並行して作れる。1案に賭ける必要がなくなる。</li>
+        <li><b>買収</b>——次項。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="buy">
+  <div class="sec-head"><span class="sec-num">06</span><h2>作らずに買う</h2></div>
+  <p class="sec-note">制約が「時間だけ」になった人間にとって、これは真面目に検討する価値がある選択肢です。前提が変わったので、初めて机の上に乗ります。</p>
+
+  <p>個人向けのM&Aプラットフォーム（TRANBI、サイト売買系のマーケットプレイスなど）では、<strong>すでに月10〜30万円の利益が出ているサイト・ニュースレター・小規模サービスが、年間利益の2〜3年分で取引されています</strong>。つまり数百万円で、月20万円のキャッシュフローが買える場合がある。</p>
+
+  <p>あなたにとっての意味はこうです。<strong>ゼロイチの集客が最大の難所なのに、それだけを金で飛ばせる。</strong>そして買った後にやることは——効果測定、CRM設計、継続率改善、価格改定。<strong>全部あなたが本業でやってきたことです。</strong>作るより、伸ばすほうが明確に得意な人の戦い方としては、こちらのほうが素直かもしれません。</p>
+
+  <div class="warn"><b>ただし前提の確認は自分でやること。</b>売りに出ている理由の大半は「伸びなくなったから」。売上の集中先（検索1本か、特定顧客1社か）、直近12ヶ月のトラフィック推移、譲渡後に引き継げないもの（属人的な運営、移管できないアカウント）を、必ず一次データで見る。<b>数字が出せない売り手は、それだけで見送っていい。</b></div>
+
+  <div class="callout"><b>組み合わせるなら。</b>買収でキャッシュフローを先に確保しつつ、04の需要テストを並走させる。<b>売上ゼロの期間をなくしたまま、自分の案を探せる</b>——時間が唯一の制約である以上、これが最も効率のいい構成です。</div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">▶</span><h2>次の一手</h2></div>
+  <ul class="plain">
+    <li><strong>今週やること。</strong>30案のうち、キーワードプランナーで検索ボリュームを持つものを10案に絞る。<strong>これは半日で終わり、ここで案の半分が死ぬ。</strong></li>
+    <li><strong>予算の置き方。</strong>検証に50万、実装に100〜150万、データに月10〜30万、広告は検証後。合計で初年度300〜500万の投下を想定しておくと、判断がぶれない。</li>
+    <li><strong>変わらないもの。</strong>週15時間の上限と、就業規則・競業避止の確認。金では動かない2つ。<strong>特に後者は、外注や買収を始める前に片付けておくこと。</strong></li>
+  </ul>
+</section>
+
+<footer>
+  この文書は「資金は制約ではない」という前提に書き換えたもの。前の計画（月3万円前提）とは、金の使い道だけでなく<b>検証の順序そのもの</b>が違う。両方を混ぜると、最も遅い経路になるので注意。
+</footer>
+
+</div>

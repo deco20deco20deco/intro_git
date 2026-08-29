@@ -1,0 +1,330 @@
+<title>生き残った案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --paper:#F1F2ED; --card:#FAFAF8;
+  --ink:#17211E; --ink-2:#4B5551; --ink-3:#7B847F;
+  --rule:#DCDFD6; --rule-soft:#E7E9E1;
+  --accent:#1F6F5C; --accent-soft:#E2EDE7;
+  --brass:#96780F; --brass-soft:#F0E9D2;
+  --alert:#A2333F; --alert-soft:#F3E2E2;
+  --shadow:0 1px 2px rgba(23,33,30,.05), 0 6px 18px rgba(23,33,30,.045);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1413; --card:#171E1C;
+    --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+    --rule:#2A3431; --rule-soft:#212A28;
+    --accent:#57B896; --accent-soft:#17322A;
+    --brass:#D3B061; --brass-soft:#2C2716;
+    --alert:#E2818A; --alert-soft:#331E20;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1413; --card:#171E1C;
+  --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+  --rule:#2A3431; --rule-soft:#212A28;
+  --accent:#57B896; --accent-soft:#17322A;
+  --brass:#D3B061; --brass-soft:#2C2716;
+  --alert:#E2818A; --alert-soft:#331E20;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+}
+
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:17px; line-height:1.9; font-feature-settings:"palt" 1; overflow-x:hidden;
+}
+.wrap{max-width:44rem;margin:0 auto;padding:0 20px 6rem;}
+@media (min-width:700px){ .wrap{padding:0 32px 8rem;} }
+
+.masthead{padding:3.2rem 0 2rem;border-bottom:1px solid var(--rule);}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 1rem;}
+h1{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:clamp(1.85rem,7.5vw,2.6rem);line-height:1.38;margin:0;text-wrap:balance;}
+.dek{color:var(--ink-2);font-size:.98rem;line-height:1.85;margin:1.1rem 0 0;}
+.dek strong{color:var(--ink);}
+.stamp{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.72rem;color:var(--ink-3);margin:1.3rem 0 0;letter-spacing:.04em;}
+
+/* status board */
+.board{display:flex;flex-direction:column;gap:.45rem;margin:1.6rem 0 0;}
+.brow{
+  display:flex;gap:.7rem;align-items:center;
+  background:var(--card);border:1px solid var(--rule);border-radius:9px;
+  padding:.65rem .85rem;box-shadow:var(--shadow);
+}
+.brow-n{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.72rem;color:var(--ink-3);flex:0 0 1.3rem;}
+.brow-name{flex:1;font-size:.9rem;font-weight:700;line-height:1.5;}
+.chip{font-size:.69rem;font-weight:700;letter-spacing:.05em;padding:.2rem .55rem;border-radius:100px;border:1px solid transparent;white-space:nowrap;}
+.chip.live{background:var(--accent);color:var(--card);}
+.chip.cond{background:var(--brass-soft);color:var(--brass);border-color:var(--brass);}
+.chip.dead{background:var(--alert-soft);color:var(--alert);border-color:var(--alert);}
+
+nav{display:flex;flex-wrap:wrap;gap:.4rem;margin:1.7rem 0 0;}
+nav a{font-size:.78rem;text-decoration:none;color:var(--ink-2);border:1px solid var(--rule);border-radius:100px;padding:.3rem .72rem;background:var(--card);}
+nav a:hover{border-color:var(--accent);color:var(--accent);}
+nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+section{padding:3rem 0 0;}
+.sec-head{display:flex;gap:.75rem;align-items:baseline;margin:0 0 .2rem;}
+.sec-num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.78rem;color:var(--accent);flex:0 0 auto;padding-top:.1rem;}
+h2{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:1.38rem;line-height:1.5;margin:0;text-wrap:balance;}
+.sec-note{font-size:.88rem;color:var(--ink-3);line-height:1.75;margin:.5rem 0 1.3rem;}
+h3{font-size:.98rem;font-weight:700;margin:2.1rem 0 .8rem;color:var(--ink);padding-left:.7rem;border-left:3px solid var(--accent);line-height:1.6;}
+p{margin:1rem 0;color:var(--ink-2);}
+strong{color:var(--ink);font-weight:700;}
+em{font-style:normal;color:var(--accent);font-weight:700;}
+a{color:var(--accent);}
+
+/* finding block */
+.find{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:1.05rem 1.1rem 1.15rem;margin:1rem 0;box-shadow:var(--shadow);
+}
+.find.live{border-color:var(--accent);border-width:1.5px;}
+.find.dead{border-color:var(--alert);}
+.find-top{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between;margin-bottom:.8rem;}
+.find-name{font-weight:700;font-size:1rem;line-height:1.5;}
+.fline{display:flex;flex-direction:column;gap:.15rem;padding:.6rem 0;border-top:1px solid var(--rule-soft);}
+.fline:first-of-type{border-top:0;padding-top:0;}
+.fline .k{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.67rem;letter-spacing:.09em;
+}
+.fline.ok .k{color:var(--accent);}
+.fline.ng .k{color:var(--alert);}
+.fline.next .k{color:var(--brass);}
+.fline .v{font-size:.89rem;line-height:1.74;color:var(--ink-2);}
+.fline .v b{color:var(--ink);}
+.fline .v code{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.82em;
+  background:var(--accent-soft);color:var(--accent);padding:.05rem .3rem;border-radius:3px;
+  word-break:break-all;
+}
+@media (min-width:560px){
+  .fline{flex-direction:row;gap:.9rem;align-items:baseline;}
+  .fline .k{flex:0 0 4.6rem;}
+  .fline .v{flex:1;}
+}
+
+/* economics */
+.econ{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:1rem 1.05rem;margin:.7rem 0;box-shadow:var(--shadow);
+}
+.econ.bad{border-color:var(--alert);}
+.econ.good{border-color:var(--accent);border-width:1.5px;}
+.econ-name{font-weight:700;font-size:.95rem;margin-bottom:.6rem;line-height:1.5;}
+.calc{display:flex;flex-direction:column;}
+.calc div{display:flex;justify-content:space-between;gap:.9rem;align-items:baseline;padding:.4rem 0;border-bottom:1px solid var(--rule-soft);font-size:.86rem;}
+.calc div:last-child{border-bottom:0;}
+.calc .k{color:var(--ink-3);font-size:.82rem;}
+.calc .v{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap;text-align:right;}
+.calc .v.lo{color:var(--alert);font-weight:500;}
+.calc .v.hi{color:var(--accent);font-weight:500;}
+.econ-note{font-size:.85rem;line-height:1.72;color:var(--ink-2);margin-top:.65rem;padding-top:.65rem;border-top:1px solid var(--rule);}
+.econ-note b{color:var(--ink);}
+
+.callout{border-left:3px solid var(--brass);background:var(--brass-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.3rem 0;font-size:.89rem;line-height:1.78;color:var(--ink-2);}
+.callout b{color:var(--ink);}
+.warn{border-left:3px solid var(--alert);background:var(--alert-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.3rem 0;font-size:.89rem;line-height:1.78;color:var(--ink-2);}
+.warn b{color:var(--ink);}
+
+ul.plain{list-style:none;padding:0;margin:1rem 0;display:flex;flex-direction:column;gap:.7rem;}
+ul.plain li{font-size:.91rem;line-height:1.78;color:var(--ink-2);padding-left:1.1rem;position:relative;}
+ul.plain li::before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+ol.steps{list-style:none;padding:0;margin:1rem 0;counter-reset:s;display:flex;flex-direction:column;gap:.85rem;}
+ol.steps li{counter-increment:s;position:relative;padding-left:2.1rem;font-size:.91rem;line-height:1.76;color:var(--ink-2);}
+ol.steps li::before{
+  content:counter(s);position:absolute;left:0;top:.26em;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.72rem;
+  width:1.45rem;height:1.45rem;border-radius:50%;border:1px solid var(--accent);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+}
+
+.src{font-size:.8rem;line-height:1.8;color:var(--ink-3);}
+.src a{color:var(--ink-2);}
+footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-size:.78rem;line-height:1.8;color:var(--ink-3);}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">一次情報の検証 / 1〜4 ＋ 海外2案</p>
+  <h1>生き残った案</h1>
+  <p class="dek">上位4案について、実際にデータが取れるか・競合がいないかを一次情報で確認した。<strong>1つは死に、1つは形を変えれば生き、2つは生き残った。</strong>あわせて、海外マス層向けの動画案を2つ。</p>
+  <p class="stamp">2026.08.29 検証</p>
+
+  <div class="board">
+    <div class="brow"><span class="brow-n">01</span><span class="brow-name">上場企業の広告宣伝費DB</span><span class="chip live">生存</span></div>
+    <div class="brow"><span class="brow-n">02</span><span class="brow-name">補助金・助成金の差分監視</span><span class="chip dead">元の形では死亡</span></div>
+    <div class="brow"><span class="brow-n">03</span><span class="brow-name">育成年代の大会結果DB</span><span class="chip live">生存・ただし重い</span></div>
+    <div class="brow"><span class="brow-n">04</span><span class="brow-name">全国アリーナ観戦ガイド</span><span class="chip cond">自動化とは相性が悪い</span></div>
+  </div>
+
+  <nav>
+    <a href="#v1">① 広告宣伝費DB</a>
+    <a href="#v2">② 補助金監視</a>
+    <a href="#v3">③ 大会結果DB</a>
+    <a href="#v4">④ 観戦ガイド</a>
+    <a href="#global">海外の単価の現実</a>
+    <a href="#g1">海外案A</a>
+    <a href="#g2">海外案B</a>
+    <a href="#next">次の一手</a>
+  </nav>
+</header>
+
+<section id="v1">
+  <div class="sec-head"><span class="sec-num">①</span><h2>上場企業の広告宣伝費DB</h2></div>
+
+  <div class="find live">
+    <div class="find-top"><span class="find-name">技術的な前提はクリアした</span><span class="chip live">生存</span></div>
+    <div class="fline ok"><span class="k">検証済</span><span class="v">EDINET API v2 は公開されており、無料の Subscription-Key で使える。書類一覧（type=2）で docID を取り、<b>type=5 でXBRLをCSVとして取得できる</b>。</span></div>
+    <div class="fline ok"><span class="k">検証済</span><span class="v"><b>広告宣伝費は標準タクソノミの要素として存在する</b>——<code>jppfs_cor_AdvertisingExpensesSGA</code>。つまり開示さえされていれば、企業ごとの表記ゆれを吸収する作業なしに機械的に取れる。<b>これが最大の懸念だったが、外れた。</b></span></div>
+    <div class="fline ng"><span class="k">残る壁</span><span class="v">XBRL/CSVは常に取れるわけではなく、書類一覧APIの<b>存在フラグが1のものだけ</b>。またCSVは<b>UTF-16のタブ区切り</b>で、素直に読めない。実装の手間であって、障害ではない。</span></div>
+    <div class="fline ng"><span class="k">未検証</span><span class="v"><b>本当の勝負はここ。</b>販管費の内訳を開示している企業がどれだけあるか。損益計算書に総額だけ載せて内訳を出さない企業は珍しくない。<b>網羅率が低ければ、商品として成立しない。</b></span></div>
+    <div class="fline next"><span class="k">次の1手</span><span class="v">直近1年の有報を数百件取得し、<code>AdvertisingExpensesSGA</code> が入っている率を数える。<b>1日で終わり、これで案の生死が確定する。</b>網羅率60%以上なら作る、30%以下なら捨てる。</span></div>
+  </div>
+
+  <div class="callout"><b>ただし前回指摘した弱点は消えていない。</b>この案は「広告宣伝費 データベース」で検索する人がいない＝<b>広告で顧客を買えない</b>。金の優位が効かない案なので、作るなら「売り方は人力の直販かデータ販売」と割り切ること。技術的に生きているのと、事業として速いのは別。</div>
+</section>
+
+<section id="v2">
+  <div class="sec-head"><span class="sec-num">②</span><h2>補助金・助成金の差分監視</h2></div>
+
+  <div class="find dead">
+    <div class="find-top"><span class="find-name">参入障壁がゼロだった</span><span class="chip dead">元の形では死亡</span></div>
+    <div class="fline ok"><span class="k">検証済</span><span class="v">jGrants の公開APIは実在し、<b>認証不要</b>。<code>api.jgrants-portal.go.jp/exp/v1/public/subsidies</code> で誰でも叩ける。OpenAPI仕様も公開。</span></div>
+    <div class="fline ng"><span class="k">これが致命傷</span><span class="v"><b>認証不要＝参入障壁がゼロ</b>ということ。実際、みんなの補助金コンシェルジュ（1万件超）、スマート補助金、みんなの助成金といった既存プレイヤーに加え、<b>個人開発の補助金検索SaaS、さらにはjGrantsのMCPサーバーまで既に存在する。</b></span></div>
+    <div class="fline ng"><span class="k">結論</span><span class="v">「全国の補助金を検索できる」は<b>もう商品ではない</b>。私が前回1位に置いたのは、競合調査をせずに構造だけで評価したから。訂正する。</span></div>
+    <div class="fline next"><span class="k">生き返らせるなら</span><span class="v">jGrantsに載っていない領域だけを狙う。<b>①1,700自治体の独自補助金（個別サイトにしかない）×②検索ではなく差分プッシュ×③業種を1つに絞る。</b>「全国網羅」を捨てて「特定業種の取りこぼしゼロ」に振り替えれば、まだ隙間はある。ただし前回言った「完全自走」ではなくなる。</span></div>
+  </div>
+
+  <div class="callout"><b>この1件が、検証を先にやる理由そのものです。</b>構造だけで見れば完璧な案だった。<b>APIが公開されている＝作りやすい</b>と<b>参入障壁がない</b>は同じことの裏表で、前者だけ見て1位にしたのは私のミスでした。</div>
+</section>
+
+<section id="v3">
+  <div class="sec-head"><span class="sec-num">③</span><h2>育成年代の大会結果DB</h2></div>
+
+  <div class="find live">
+    <div class="find-top"><span class="find-name">仮説どおり、誰も整形していない</span><span class="chip live">生存・ただし重い</span></div>
+    <div class="fline ok"><span class="k">検証済</span><span class="v">全国高体連・各都道府県の高体連・競技別の専門部が、<b>それぞれ独立にPDFやHTMLで結果を出している</b>。統一フォーマットは存在しない。中体連の機械可読データは見つからなかった。</span></div>
+    <div class="fline ok"><span class="k">つまり</span><span class="v"><b>非整形度が高いという仮説は当たっている＝機会は本物。</b>選手名で横断検索できる場所は、事実上ない。</span></div>
+    <div class="fline ng"><span class="k">代償</span><span class="v">取得先が<b>都道府県 × 競技 = 数百のサイトに分散</b>している。3案の中で初期構築コストが最も高い。金は出せるので不可能ではないが、外注しても数ヶ月かかる。</span></div>
+    <div class="fline ng"><span class="k">重い論点</span><span class="v"><b>未成年の個人情報。</b>公開情報の再掲であっても、掲載範囲・本人や保護者からの削除依頼・検索エンジンへの露出制御を先に設計しないと、始めた後で止まる。</span></div>
+    <div class="fline next"><span class="k">次の1手</span><span class="v">1競技 × 1都道府県に絞って、<b>過去3年分の結果を実際に構造化してみる</b>。何時間かかったかを測れば、全国展開の総コストが計算できる。<b>いきなり全国をやらないこと。</b></span></div>
+  </div>
+</section>
+
+<section id="v4">
+  <div class="sec-head"><span class="sec-num">④</span><h2>全国アリーナ観戦ガイド</h2></div>
+
+  <div class="find">
+    <div class="find-top"><span class="find-name">「自動で回る」という条件と衝突する</span><span class="chip cond">条件付き</span></div>
+    <div class="fline ng"><span class="k">構造の問題</span><span class="v">この案の価値は「その席から実際にどう見えるか」にある。ところが<b>座席表は会場・興行主の著作物で転載できず、見え方の写真も他人の著作物</b>。自前で撮るかユーザー投稿を集めるしかない。<b>つまり自動生成と最も相性が悪い案。</b></span></div>
+    <div class="fline ng"><span class="k">経済性</span><span class="v">1ユーザーあたりの収益が小さく、広告で獲得すると必ず赤字になる。SEO一本＝時間を金で買えない。</span></div>
+    <div class="fline next"><span class="k">扱い</span><span class="v">単体の事業としては<b>落とす</b>。ただし③を作るなら、その集客の入口として同居させる価値はある。<b>③の副産物として持つのが正しい位置。</b></span></div>
+    <div class="fline"><span class="k">注記</span><span class="v">この項だけは公開APIの有無ではなく<b>権利構造からの判断</b>であり、①〜③のような一次情報の裏取りはしていない。反証があれば覆る。</span></div>
+  </div>
+</section>
+
+<section id="global">
+  <div class="sec-head"><span class="sec-num">＄</span><h2>海外マス層の単価の現実</h2></div>
+  <p class="sec-note">全世界の低関与ユーザーを相手にする前に、1つだけ計算しておく必要がある。<b>頭数は多いが、1人あたりが極端に安い</b>という構造をどう回避するか。月50万円＝およそ $3,300 として計算した。</p>
+
+  <div class="econ bad">
+    <div class="econ-name">経路A：広告収益だけで作る場合</div>
+    <div class="calc">
+      <div><span class="k">短尺・低単価地域中心のRPM</span><span class="v">$0.05〜0.15 / 1,000再生</span></div>
+      <div><span class="k">必要な月間再生数</span><span class="v lo">2,200万〜6,600万</span></div>
+      <div><span class="k">1日あたり</span><span class="v lo">約73万〜220万再生</span></div>
+      <div><span class="k">英語圏・長尺中心のRPM</span><span class="v">$2〜5 / 1,000再生</span></div>
+      <div><span class="k">その場合の必要再生数</span><span class="v">月66万〜165万</span></div>
+    </div>
+    <div class="econ-note"><b>ここが罠。</b>「全世界のマス層」を狙うほど視聴者の地域単価が下がり、必要再生数が跳ね上がる。<b>広告だけで月50万は、トップ層のクリエイター事業と同じ規模を要求される。</b>AIで動画を量産して広告収入、という最も素直な発想が成立しないのはこの一点。</div>
+  </div>
+
+  <div class="econ good">
+    <div class="econ-name">経路B：マス層の中の「課金する数%」に売る場合</div>
+    <div class="calc">
+      <div><span class="k">課金単価（1話あたりのコイン課金）</span><span class="v">$0.5〜2</span></div>
+      <div><span class="k">課金ユーザーの月間支払い</span><span class="v">$20〜60</span></div>
+      <div><span class="k">月50万に必要な課金ユーザー</span><span class="v hi">約60〜170人</span></div>
+    </div>
+    <div class="econ-note"><b>桁が3つ違う。</b>無料で大量に見せて、続きが気になった数%だけが課金する——これが縦型ショートドラマのモデル。<b>「バカで怠惰」と切り捨てた層の中に、月$50払う人が確実に一定割合いる</b>という事実が、この市場の全部です。</div>
+  </div>
+
+  <div class="callout"><b>市場は実在する。</b>Deloitte は2026年のアプリ内マイクロシリーズ収益を <b>約78億ドル</b>（前年比2倍超）と予測。ReelShort は2026年Q1だけで約1.4億ドル、MAU 7,000万、累計12億ドル超。中国本土を除く売上の約6割を上位3社が占める。<b>つまりプラットフォーム側は既に決着がついていて、勝負は供給側と獲得側にある。</b></div>
+
+  <div class="warn"><b>1つだけ実務的な注意。</b>「バカで怠惰な層」という前提のまま作ると、たぶん外します。この市場で当たっている作品は、視聴者の欲望（逆転、復讐、承認）を<b>真面目に扱っている</b>から3秒で刺さる。見下したまま作ったフックは、見下した感じがそのまま伝わって滑る。<b>ターゲットの知能ではなく、可処分注意が3秒しかないという制約として扱うこと</b>——マーケターとしてはそのほうが強い。</div>
+</section>
+
+<section id="g1">
+  <div class="sec-head"><span class="sec-num">A</span><h2>海外案A：縦型ショートドラマの「獲得」側に回る</h2></div>
+
+  <p><strong>プラットフォームは作らない</strong>（上位3社で6割、勝てない）。<strong>作品も自分では作らない</strong>（1作品数百万円、労働集約でスケールしない）。入るのは<em>その間</em>——広告クリエイティブとフック検証です。</p>
+
+  <p>この商売は、<strong>最初の3秒で課金するかどうかが決まる</strong>。だから各社は膨大な数の縦型広告を回し、CPI（インストール単価）と初回課金率を毎日殴り合っている。<strong>これはMMMとクリエイティブ検証そのもので、あなたの本業の中心です。</strong>顧客は中国系プラットフォームの海外展開部隊や、その周辺の制作会社。予算規模が大きく、単価が取れる。</p>
+
+  <ul class="plain">
+    <li><strong>強み。</strong>「広告効果を分解できる日本人マーケター」は、この領域で希少。日本市場への展開支援という切り口なら、言語も地の利になる。</li>
+    <li><strong>速さ。</strong>4案の中で<strong>最も早く月50万を超える</strong>。運用フィーの相場を考えれば2〜3社で届く。</li>
+    <li><strong>弱点を正直に。</strong>これは「勝手に回る」ではない。人力の運用代行です。<strong>ただし、当たるフックのデータが自分に溜まる</strong>——それを商品化する（フックのライブラリ、検証ツール）のが2段目の手。</li>
+  </ul>
+</section>
+
+<section id="g2">
+  <div class="sec-head"><span class="sec-num">B</span><h2>海外案B：FASTチャンネルを持つ</h2></div>
+
+  <p>FAST＝無料広告付きストリーミングTV（Pluto TV、Tubi、Samsung TV Plus、LG Channels、Roku Channel）。<strong>「24時間、何かが流れ続けるチャンネル」を持って、広告収益をレベニューシェアで取る</strong>形です。<em>これは本当に勝手に回ります</em>——一度編成を組めば、あとは流れ続けるだけなので。</p>
+
+  <div class="find">
+    <div class="fline ok"><span class="k">検証済</span><span class="v">必要なのは<b>安定したHLS/DASHのフィード、SCTE-35の広告マーカー、正確なEPG（番組表）メタデータ</b>。技術要件は明確で、金で解決できる範囲。</span></div>
+    <div class="fline ng"><span class="k">検証済</span><span class="v"><b>Samsung TV Plus などTier1に公開応募窓口はない。</b>アグリゲータ経由か招待のみで、初回接触から公開まで<b>3〜6ヶ月</b>。Tier2なら入りやすいが視聴者数は小さい。</span></div>
+    <div class="fline ok"><span class="k">通る条件</span><span class="v">「24時間クラシック・タミル映画」「地域の高校フットボール」のように<b>ターゲットが一言で言えるコンセプト</b>＋<b>実際に動いているフィード</b>＋<b>権利書類</b>。逆に言えば、この3つを揃えれば個人でも通る。</span></div>
+  </div>
+
+  <p><strong>あなたに効く点が2つあります。</strong>ひとつは、コンテンツを作る必要がないこと——権利がクリアな在庫（パブリックドメイン作品、包括ライセンスした旧作、自前で量産できる映像）を流し続ければいい。もうひとつは、<strong>編成＝「何を何時に流せば見続けてもらえるか」の設計が、そのまま継続率の設計だ</strong>ということ。あなたがCSでやってきた思考が、そのまま competitive advantage になる数少ない領域です。</p>
+
+  <div class="warn"><b>弱点。</b>立ち上がりが遅い（交渉に3〜6ヶ月）、単独チャンネルでは収益が小さい、そして<b>権利処理を間違えると一発で終わる</b>。「勝手に回る度」は最高だが、「速さ」は最低。案Aで稼ぎながらこれを仕込む、という組み合わせが現実的です。</div>
+</section>
+
+<section id="next">
+  <div class="sec-head"><span class="sec-num">▶</span><h2>次の一手</h2></div>
+  <ol class="steps">
+    <li><strong>①の網羅率を数える。</strong>直近1年の有報を数百件取って <code style="font-family:'IBM Plex Mono',monospace;font-size:.85em">AdvertisingExpensesSGA</code> の出現率を出す。<strong>半日〜1日。これで①が確定する。</strong>私のほうで実行できます。</li>
+    <li><strong>②は作り直すかどうかを決める。</strong>「全国網羅」を捨てて「1業種 × 自治体独自 × 差分プッシュ」に絞る形なら生きる。絞る業種が思いつかないなら、捨てて構いません。</li>
+    <li><strong>③は1競技1県で試作。</strong>コストを実測してから全国を判断する。並行して、未成年の掲載ポリシーを先に決める。</li>
+    <li><strong>海外Aは今日から動ける。</strong>ショートドラマ各社の日本・英語圏向け広告を実際に集めて、フックのパターンを分解した資料を1本作る。<strong>それがそのまま営業資料になります。</strong>制作も開発も不要。</li>
+  </ol>
+  <p>この4つのうち、<strong>1と4は今週中に終わります</strong>。やる順番としては、4（即金性）→ 1（案の確定）→ 3（重いので後） の順を勧めます。</p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">§</span><h2>参照した一次情報</h2></div>
+  <p class="src">
+    <a href="https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/download/ESE140206.pdf">EDINET API 仕様書（Version 2）／金融庁</a>　·
+    <a href="https://www.fsa.go.jp/search/20241112/1b-1_GaiyoSetsumei.pdf">EDINETタクソノミの概要説明 2024年11月／金融庁</a>　·
+    <a href="https://gxceed.com/edinet-api">EDINET APIとは？料金・取得データ・XBRL解析の注意点</a>　·
+    <a href="https://www.jgrants-portal.go.jp/open-api">jGrants API／デジタル庁</a>　·
+    <a href="https://zenn.dev/shin_takaiwa/articles/aa0c54b4811a37">デジタル庁のjGrants APIで補助金検索SaaSを個人開発した</a>　·
+    <a href="https://hojyokin-concierge.com/">みんなの補助金コンシェルジュ</a>　·
+    <a href="https://www.smart-hojokin.jp/">スマート補助金</a>　·
+    <a href="https://www.zen-koutairen.com/">全国高等学校体育連盟</a>　·
+    <a href="https://www.deloitte.com/us/en/insights/industry/technology/technology-media-and-telecom-predictions/2026/short-form-video-series.html">Deloitte TMT Predictions 2026: Short-form video series</a>　·
+    <a href="https://sensortower.com/blog/state-of-short-drama-apps-2026-report">State of Short Drama Apps 2026／Sensor Tower</a>　·
+    <a href="https://www.advanced-television.com/2024/10/23/fast-faqs-launching-a-fast-channel/">FAST FAQs: Launching a FAST channel</a>　·
+    <a href="https://www.moltencloud.com/blog-article/delivering-content-to-samsung-tv-plus-avails-specs-workflow">Samsung TV Plus Delivery Guide</a>
+  </p>
+</section>
+
+<footer>
+  検証の結論：構造で評価した順位と、一次情報で確かめた後の順位は一致しない。②は「APIが公開されている」ことを長所として1位に置いたが、それは同時に参入障壁がないという意味だった。<b>案の評価は、作りやすさではなく作りにくさの側から見るほうが正確です。</b>
+</footer>
+
+</div>

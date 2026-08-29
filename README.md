@@ -33,6 +33,8 @@
 
 - [月商50万円のWebサービス — 案の比較と90日計画](docs/business/webservice-plan.md) — 副業前提での事業案4件の比較、船橋の効かせ方3パターン、90日計画と撤退基準（20260828）
 - [自動で回る30案](docs/business/ideas-30.html) — 「AIで大量生成して勝手に回す」路線での掛け合わせ30案＋キーワード表（20260829）
+- [金で時間を買う設計](docs/business/budget-unlocked.html) — 予算制約なし前提でのCAC×LTV計算、30案の再ランク、買収という選択肢（20260829）
+- [生き残った案](docs/business/verification-and-global.html) — 上位4案のデータ実在性・競合の一次情報検証と、海外マス層向け動画2案（20260829）
 
 ## データ準備チェックリスト
 
