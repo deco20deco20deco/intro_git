@@ -38,6 +38,7 @@
 - [在職中の線引き](docs/business/legal-screen.html) — 現職の事業範囲と照合した競業リスクの仕分け、事業ごとの法規制論点（20260829）
 - [消えた案と残った案](docs/business/verification-board.html) — 全案の潰し込み結果と、生死を決める2数値の実行手順（20260829）
 - [チャンネルを一本持つ](docs/business/fast-channel.html) — FASTの収益実勢、権利がクリアな在庫、コンセプト候補と最初の30日（20260829）
+- [初回撮影の手順書](docs/business/shooting-spec.html) — スマホでの設定・風切り音対策・歩き方・撮影ルール・当日チェックリスト（20260829）
 - 検証ツール: [`scripts/検証ツール.ipynb`](scripts/検証ツール.ipynb) — Google Colabにドロップして再生ボタンを押すだけの実行用ノートブック（推奨）
 - 検証スクリプト（CLI版）: [`scripts/edinet_coverage.py`](scripts/edinet_coverage.py)（広告宣伝費の開示網羅率）／[`scripts/jgrants_probe.py`](scripts/jgrants_probe.py)（jGrantsの網羅範囲と差分検知の可否）
 

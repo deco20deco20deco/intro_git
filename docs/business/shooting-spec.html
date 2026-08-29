@@ -1,0 +1,251 @@
+<title>初回撮影の手順書</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --paper:#F1F2ED; --card:#FAFAF8;
+  --ink:#17211E; --ink-2:#4B5551; --ink-3:#7B847F;
+  --rule:#DCDFD6; --rule-soft:#E7E9E1;
+  --accent:#1F6F5C; --accent-soft:#E2EDE7;
+  --brass:#96780F; --brass-soft:#F0E9D2;
+  --alert:#A2333F; --alert-soft:#F3E2E2;
+  --shadow:0 1px 2px rgba(23,33,30,.05), 0 6px 18px rgba(23,33,30,.045);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1413; --card:#171E1C;
+    --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+    --rule:#2A3431; --rule-soft:#212A28;
+    --accent:#57B896; --accent-soft:#17322A;
+    --brass:#D3B061; --brass-soft:#2C2716;
+    --alert:#E2818A; --alert-soft:#331E20;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1413; --card:#171E1C;
+  --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+  --rule:#2A3431; --rule-soft:#212A28;
+  --accent:#57B896; --accent-soft:#17322A;
+  --brass:#D3B061; --brass-soft:#2C2716;
+  --alert:#E2818A; --alert-soft:#331E20;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+}
+
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:17px; line-height:1.88; font-feature-settings:"palt" 1; overflow-x:hidden;
+}
+.wrap{max-width:44rem;margin:0 auto;padding:0 20px 6rem;}
+@media (min-width:700px){ .wrap{padding:0 32px 8rem;} }
+
+.masthead{padding:3rem 0 1.8rem;border-bottom:1px solid var(--rule);}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 1rem;}
+h1{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:clamp(1.8rem,7vw,2.4rem);line-height:1.4;margin:0;text-wrap:balance;}
+.dek{color:var(--ink-2);font-size:.96rem;line-height:1.82;margin:1rem 0 0;}
+.dek strong{color:var(--ink);}
+
+nav{display:flex;flex-wrap:wrap;gap:.4rem;margin:1.6rem 0 0;}
+nav a{font-size:.78rem;text-decoration:none;color:var(--ink-2);border:1px solid var(--rule);border-radius:100px;padding:.3rem .72rem;background:var(--card);}
+nav a:hover{border-color:var(--accent);color:var(--accent);}
+nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+section{padding:2.8rem 0 0;}
+.sec-head{display:flex;gap:.75rem;align-items:baseline;margin:0 0 .2rem;}
+.sec-num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.78rem;color:var(--accent);flex:0 0 auto;padding-top:.1rem;}
+h2{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:1.34rem;line-height:1.5;margin:0;text-wrap:balance;}
+.sec-note{font-size:.87rem;color:var(--ink-3);line-height:1.75;margin:.5rem 0 1.2rem;}
+h3{font-size:.96rem;font-weight:700;margin:1.9rem 0 .7rem;color:var(--ink);padding-left:.7rem;border-left:3px solid var(--accent);line-height:1.6;}
+p{margin:.9rem 0;color:var(--ink-2);}
+strong{color:var(--ink);font-weight:700;}
+em{font-style:normal;color:var(--accent);font-weight:700;}
+
+/* settings table as rows */
+.set{display:flex;flex-direction:column;margin:1rem 0;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:.3rem 1rem;box-shadow:var(--shadow);}
+.set > div{display:flex;flex-direction:column;gap:.1rem;padding:.7rem 0;border-bottom:1px solid var(--rule-soft);}
+.set > div:last-child{border-bottom:0;}
+.set .k{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.68rem;letter-spacing:.08em;color:var(--ink-3);}
+.set .v{font-size:.92rem;line-height:1.7;color:var(--ink);font-weight:700;}
+.set .why{font-size:.85rem;line-height:1.68;color:var(--ink-2);font-weight:400;}
+@media (min-width:600px){
+  .set > div{flex-direction:row;gap:1rem;align-items:baseline;}
+  .set .k{flex:0 0 6.5rem;}
+  .set .rest{flex:1;}
+}
+
+.rank{display:flex;flex-direction:column;gap:.5rem;margin:1rem 0;}
+.rk{display:flex;gap:.8rem;align-items:flex-start;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:.85rem 1rem;box-shadow:var(--shadow);}
+.rk.top{border-color:var(--accent);border-width:1.5px;}
+.rk-n{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.7rem;color:var(--accent);
+  flex:0 0 auto;border:1px solid var(--accent);border-radius:50%;
+  width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;margin-top:.15rem;
+}
+.rk-b{flex:1;font-size:.9rem;line-height:1.72;color:var(--ink-2);}
+.rk-b b{color:var(--ink);display:block;margin-bottom:.1rem;}
+
+.warn{border-left:3px solid var(--alert);background:var(--alert-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.2rem 0;font-size:.88rem;line-height:1.76;color:var(--ink-2);}
+.warn b{color:var(--ink);}
+.callout{border-left:3px solid var(--brass);background:var(--brass-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.2rem 0;font-size:.88rem;line-height:1.76;color:var(--ink-2);}
+.callout b{color:var(--ink);}
+
+ul.plain{list-style:none;padding:0;margin:.9rem 0;display:flex;flex-direction:column;gap:.65rem;}
+ul.plain li{font-size:.9rem;line-height:1.76;color:var(--ink-2);padding-left:1.1rem;position:relative;}
+ul.plain li::before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+ul.check{list-style:none;padding:0;margin:.9rem 0;display:flex;flex-direction:column;gap:.5rem;}
+ul.check li{
+  font-size:.9rem;line-height:1.72;color:var(--ink-2);padding:.6rem .8rem .6rem 2.2rem;position:relative;
+  background:var(--card);border:1px solid var(--rule);border-radius:8px;
+}
+ul.check li::before{
+  content:"";position:absolute;left:.8rem;top:.95em;
+  width:.75rem;height:.75rem;border:1.5px solid var(--accent);border-radius:3px;
+}
+ul.check li b{color:var(--ink);}
+
+footer{margin-top:3.5rem;padding-top:1.4rem;border-top:1px solid var(--rule);font-size:.78rem;line-height:1.8;color:var(--ink-3);}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Phase 0 / 今週末</p>
+  <h1>初回撮影の手順書</h1>
+  <p class="dek">スマホ1台で始めます。<strong>機材は何も買わないでください</strong>——1回撮ってみて、続けられそうだと分かってからで十分です。この1枚を現地でそのまま開いて使えるようにしてあります。</p>
+
+  <nav>
+    <a href="#wind">風切り音</a>
+    <a href="#setting">カメラ設定</a>
+    <a href="#walk">歩き方</a>
+    <a href="#where">どこで撮るか</a>
+    <a href="#legal">撮影のルール</a>
+    <a href="#check">当日チェックリスト</a>
+  </nav>
+</header>
+
+<section id="wind">
+  <div class="sec-head"><span class="sec-num">01</span><h2>風切り音</h2></div>
+
+  <div class="warn"><b>大前提：後処理では消せません。</b>風切り音は「音が大きい」のではなく、<b>風がマイクに直接ぶつかってマイクが飽和し、録音の時点で波形が壊れている</b>状態です。編集で消そうとすると、街の環境音ごと死んで、水中みたいな音になります。<b>録るときに防ぐしかない。</b></div>
+
+  <p>効く順に並べました。<strong>上の3つだけで、体感の9割が解決します。</strong></p>
+
+  <div class="rank">
+    <div class="rk top">
+      <span class="rk-n">1</span>
+      <div class="rk-b"><b>風の強い日に撮らない</b>これが最強です。天気アプリで<b>風速3m/s以下</b>の日を選ぶ。船橋は海が近いので、湾岸側は特に吹きます。<b>撮影日を選べるのが個人の最大の武器</b>なので、無理な日は行かない。</div>
+    </div>
+    <div class="rk top">
+      <span class="rk-n">2</span>
+      <div class="rk-b"><b>風の当たらない場所を選ぶ</b>ビルの谷間、アーケード商店街、駅前の細い路地、地下街。<b>開けた場所・河川敷・海沿い・高架下の吹き抜けは避ける。</b>夜の繁華街を狙うのは、需要が高いだけでなく<b>建物に囲まれていて風が弱いから</b>でもあります。</div>
+    </div>
+    <div class="rk top">
+      <span class="rk-n">3</span>
+      <div class="rk-b"><b>マイクを風上に向けない／体で隠す</b>スマホのマイクは本体の上下にあります。<b>風上に背を向けて歩く</b>だけで大きく変わる。手で覆うのは逆効果（こもる＋手の擦れ音が乗る）なので、<b>体の位置でブロック</b>します。</div>
+    </div>
+    <div class="rk">
+      <span class="rk-n">4</span>
+      <div class="rk-b"><b>スマホの「風切り音低減」をON</b>機種によって名前が違います（風ノイズ低減、Wind Noise Reduction）。<b>あくまで補助</b>で、これだけでは足りません。</div>
+    </div>
+    <div class="rk">
+      <span class="rk-n">5</span>
+      <div class="rk-b"><b>ウインドジャマーを買う（次の段階）</b>毛がふさふさした、通称「デッドキャット」。<b>スマホ用は1,000〜2,000円程度</b>で、物理対策としては圧倒的に効きます。ただし<b>1回撮ってから買ってください</b>——続ける気になるかを先に確かめる方が大事です。</div>
+    </div>
+  </div>
+
+  <div class="callout"><b>風より厄介な敵が実はあります。</b>歩き撮りで音を台無しにするのは、風よりも<b>自分の呼吸・衣擦れ・足音</b>です。マイクが体に近いほど拾います。対策は<b>スマホを体から少し離して持つ</b>ことと、<b>撮影中は鼻で静かに呼吸する</b>こと。あと<b>ナイロン系の上着は擦れ音が盛大に入る</b>ので、綿の服で行ってください。地味ですが効きます。</div>
+</section>
+
+<section id="setting">
+  <div class="sec-head"><span class="sec-num">02</span><h2>カメラ設定</h2></div>
+  <p class="sec-note">迷ったらこの通りに。理由も書いたので、後で自分で判断を変えられます。</p>
+
+  <div class="set">
+    <div><span class="k">解像度</span><span class="rest"><span class="v">4K</span><span class="why">FAST・テレビ画面で見られる前提なので4Kで撮る。編集で切り出す余地も生まれます。</span></span></div>
+    <div><span class="k">フレームレート</span><span class="rest"><span class="v">30fps</span><span class="why">60fpsは容量が倍で、長回しだと<b>発熱で撮影が止まる</b>リスクが上がります。歩き撮りは30で十分滑らかです。</span></span></div>
+    <div><span class="k">HDR</span><span class="rest"><span class="v">OFF（SDRで撮る）</span><span class="why">HDRは編集・配信の各段階で色が破綻しやすく、初回でつまずく原因になります。<b>最初は必ずOFF。</b></span></span></div>
+    <div><span class="k">手ブレ補正</span><span class="rest"><span class="v">標準のものをON</span><span class="why">「アクションモード」等の強力なものは<b>画角が狭くなり、周辺が歪みます</b>。標準で十分。</span></span></div>
+    <div><span class="k">露出</span><span class="rest"><span class="v">固定する（AEロック）</span><span class="why"><b>これが一番効きます。</b>夜の繁華街は看板やネオンで明るさが激しく動くので、オートだと画面全体が明滅して見ていられません。画面を長押ししてロック。</span></span></div>
+    <div><span class="k">ホワイトバランス</span><span class="rest"><span class="v">固定する</span><span class="why">オートだと看板の色に引っ張られて<b>色がフラフラ変わります</b>。固定できる機種なら固定。</span></span></div>
+    <div><span class="k">フォーカス</span><span class="rest"><span class="v">遠景でロック</span><span class="why">歩くたびに手前の通行人にピントを取られると酔います。</span></span></div>
+    <div><span class="k">画面の向き</span><span class="rest"><span class="v">横（絶対）</span><span class="why">テレビ画面が最終出力なので、縦で撮ったものは一切使えません。</span></span></div>
+    <div><span class="k">機内モード</span><span class="rest"><span class="v">ON</span><span class="why">通信は発熱と電池消費の主因。<b>長回しの敵は発熱です。</b>着信で撮影が止まる事故も防げます。</span></span></div>
+    <div><span class="k">給電</span><span class="rest"><span class="v">モバイルバッテリーを繋いだまま</span><span class="why">40〜60分の4K撮影は電池を大きく食います。ただし<b>給電すると発熱も増える</b>ので、ケースは外しておく。</span></span></div>
+    <div><span class="k">空き容量</span><span class="rest"><span class="v">64GB以上空ける</span><span class="why">4K30分でおよそ10GB前後。3本撮るなら余裕を持って。</span></span></div>
+  </div>
+</section>
+
+<section id="walk">
+  <div class="sec-head"><span class="sec-num">03</span><h2>歩き方</h2></div>
+  <p class="sec-note">機材より、ここが素人と見られるかの分かれ目になります。</p>
+
+  <ul class="plain">
+    <li><strong>普段の7割の速度で歩く。</strong>自分では遅すぎると感じるくらいでちょうどいい。視聴者は景色を見ています。</li>
+    <li><strong>カメラは胸から目線の高さ、水平を保つ。</strong>下を向くと地面ばかりになり、上を向くと空ばかりになります。</li>
+    <li><strong>急に振り向かない。</strong>曲がるときは<b>体ごとゆっくり</b>。カメラだけ振ると酔います。</li>
+    <li><strong>両手で持つか、脇を締める。</strong>ジンバルがない前提なので、<b>腕を体に固定して、脚のクッションで揺れを吸収</b>する意識で。すり足気味に歩くと縦揺れが減ります。</li>
+    <li><strong>止めない、切らない。</strong>40〜60分を1本の長回しで。<b>途中で止めるとファイルが分かれて後が面倒</b>です。信号待ちはそのまま撮っていて構いません（むしろ自然）。</li>
+    <li><strong>喋らない。</strong>ナレーションなしが商品の核です。環境音だけ。</li>
+    <li><strong>最初と最後に5秒、静止して撮る。</strong>編集でつなぎに使えます。</li>
+  </ul>
+</section>
+
+<section id="where">
+  <div class="sec-head"><span class="sec-num">04</span><h2>どこで撮るか</h2></div>
+  <p class="sec-note">1本目は「当たりが分かっている場所」で撮って、自分の映像が世の中の水準と比べてどうかを見るのが目的です。</p>
+
+  <h3>需要が確認できている条件</h3>
+  <p>この分野で最も見られている動画の傾向は、はっきりしています。<strong>夜・雨・裏路地・繁華街</strong>。人気チャンネルの最上位が「<strong>雨の夜の東京の裏路地</strong>」と「秋葉原」であることは、そのまま設計指針として使えます。しかも<strong>夜の繁華街はビルに囲まれていて風が弱い</strong>ので、音の条件も良い。</p>
+
+  <h3>今週末の3本（案）</h3>
+  <ul class="plain">
+    <li><strong>1本目：新宿か渋谷の夜。</strong>王道。まず世の中の水準と自分の映像を比べるための1本。</li>
+    <li><strong>2本目：上野アメ横、または浅草の夜。</strong>雑然としていて、海外から見たときの「日本っぽさ」が濃い。</li>
+    <li><strong>3本目：船橋の夜（商店街・駅前・住宅街）。</strong><b>これが差別化の本命です。</b>観光地の日本は撮り尽くされていますが、<b>観光地ではない普通の日本の夜</b>は希少で、あなたにしか継続的に撮れません。</li>
+  </ul>
+
+  <div class="callout"><b>3本目が一番大事だと思っています。</b>1・2本目は「自分が撮れるか」のテスト。3本目は「<b>自分にしか撮れないものがあるか</b>」のテストです。前回「あなたにしかできない要素がない」と書きましたが、<b>ここに答えがあるかもしれません</b>——地元の、誰も撮りに来ない夜。</div>
+</section>
+
+<section id="legal">
+  <div class="sec-head"><span class="sec-num">05</span><h2>撮影のルール</h2></div>
+  <p class="sec-note">後で公開する前提なので、ここは先に押さえておいてください。トラブルの大半はこの3点です。</p>
+
+  <ul class="plain">
+    <li><strong>公道からの撮影は原則できます。</strong>ただし<b>通行人の顔が識別できる形で公開すると、肖像権の問題になり得ます。</b>歩き撮りは通行人が写るのが前提なので、実務上は「<b>特定の人を狙って撮らない・追わない・立ち止まって撮らない</b>」と「<b>申し出があれば削除する</b>」の運用で対応します。気になる場合は、公開前に顔をぼかす処理を入れる選択肢もあります。</li>
+    <li><strong>私有地は許可が要ります。</strong>駅の構内、商業施設の中、店内、私道。<b>駅構内は特に厳格</b>で、鉄道会社ごとにルールがあります。<b>1本目は完全に公道だけで組んでください。</b></li>
+    <li><strong>三脚・ジンバル・自撮り棒は施設で禁止されていることが多い</b>です。手持ちなら問題になりにくい。</li>
+    <li><strong>撮影中に声をかけられたら、素直に応じる。</strong>揉めた記録が残るほうが、映像1本より高くつきます。</li>
+  </ul>
+</section>
+
+<section id="check">
+  <div class="sec-head"><span class="sec-num">06</span><h2>当日チェックリスト</h2></div>
+  <p class="sec-note">出かける前に、これだけ。</p>
+
+  <ul class="check">
+    <li><b>風速3m/s以下</b>の日か、天気アプリで確認した</li>
+    <li>スマホの空き容量が<b>64GB以上</b>ある</li>
+    <li><b>モバイルバッテリーとケーブル</b>を持った</li>
+    <li>スマホの<b>ケースを外した</b>（発熱対策）</li>
+    <li><b>機内モードON</b>にした</li>
+    <li>設定：<b>4K / 30fps / HDRオフ / 横向き</b></li>
+    <li><b>綿の上着</b>で来た（ナイロンは擦れ音が入る）</li>
+    <li>撮影開始前に<b>露出とフォーカスをロック</b>した</li>
+    <li>ルートを決めた（<b>公道だけ</b>・40〜60分・戻ってこないルート）</li>
+  </ul>
+
+  <div class="warn"><b>1本目で完璧を狙わないでください。</b>目的は良い映像を撮ることではなく、<b>「自分がこれを毎週やれるか」を確かめること</b>です。撮ってみて苦痛だったら、その事実のほうが映像より価値のある情報です。<b>その場合は正直に言ってください。作戦を変えます。</b></div>
+</section>
+
+<footer>
+  撮れたら、3本のうち1本を10秒でいいので見せてください。露出・手ブレ・音の3点を見て、次の撮影で直すところを specific に返します。そのあとで、24時間ループ配信のセットアップと、視聴時間を測るための広告テストの設計に進みます。
+</footer>
+
+</div>
