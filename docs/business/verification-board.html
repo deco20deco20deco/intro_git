@@ -132,13 +132,14 @@ footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-
 <header class="masthead">
   <p class="eyebrow">全案の潰し込み / 検証ボード</p>
   <h1>消えた案と<br>残った案</h1>
-  <p class="dek">全案を一次情報で潰しにいった結果。ショートドラマは市場ごと閉じ、<strong>広告宣伝費DBも実測 29.3% で脱落しました</strong>。生きているのは③（重いが本物）と海外B（FAST）、残る未確定は補助金の1件だけです。</p>
+  <p class="dek">全案を一次情報で潰しにいった結果。<strong>検証フェーズはこれで終わりです。</strong>ショートドラマは市場ごと閉じ、広告宣伝費DBは実測29.3%で脱落。残ったのは<strong>②（作り直せば生存・ただし重い）③（重いが本物）海外B（軽く、競業リスクも最小）</strong>の3つ。ここから先は潰し込みではなく、<strong>どれに時間を割くかの選択</strong>になります。</p>
 
   <nav>
     <a href="#closed">閉じた案</a>
     <a href="#pending">実測した案</a>
     <a href="#alive">生きている案</a>
     <a href="#run">走らせるもの</a>
+    <a href="#choose">選択</a>
     <a href="#blocked">実行できなかった理由</a>
   </nav>
 </header>
@@ -188,12 +189,23 @@ footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-
   </div>
 
   <div class="item">
-    <div class="item-top"><span class="item-name">②　補助金の差分監視</span><span class="chip wait">とどめ待ち</span></div>
-    <div class="fline bad"><span class="k">確定</span><span class="v">jGrants APIは認証不要＝参入障壁ゼロ。既存プレイヤー（1万件規模を謳うサイトを含む）も個人開発SaaSも既にある。<b>「全国の補助金を検索できる」はもう商品ではない。</b></span></div>
-    <div class="fline todo"><span class="k">残る問い</span><span class="v">生き返る余地は2つだけ。<b>仮説A：市区町村の独自補助金がjGrantsにほとんど載っていない</b>なら、そこが手つかずの領域。<b>仮説B：レコードに更新日時があり差分検知ができる</b>なら、商品を「検索」から「プッシュ」に寄せられる。</span></div>
-    <div class="fline todo"><span class="k">決め方</span><span class="v"><code>scripts/jgrants_probe.py</code> が総件数・フィールド一覧・対象地域の分布を出す。<b>「全国」比率が高ければ作り直せる。地域単位の補助金も十分載っていれば、捨てる。</b></span></div>
+    <div class="item-top"><span class="item-name">②　補助金の差分監視</span><span class="chip wait">作り直せば生存</span></div>
+    <div class="fline ok"><span class="k">実測</span><span class="v">22キーワードを回して重複排除した結果。
+      <div class="calc">
+        <div><span class="k">jGrantsの総件数</span><span class="v">3,845件</span></div>
+        <div><span class="k">うち「全国」扱い</span><span class="v">2,559件（66.6%）</span></div>
+        <div><span class="k">既存民間サービスの掲載数</span><span class="v">1万件超を謳うものあり</span></div>
+        <div><span class="k">事前に決めた合格ライン</span><span class="v">総件数が大きく下回り、全国比率が高いこと</span></div>
+      </div>
+    </span></div>
+    <div class="fline ok"><span class="k">仮説A</span><span class="v"><b>成立。</b>jGrantsは国の施策が中心で、市区町村レベルはほぼ載っていない。<b>都道府県レベルですら掲載が極端に偏っている</b>——東京都493件に対し、大阪府は上位20件にすら入らない。<b>掲載が自治体の任意である証拠</b>で、これは「jGrantsだけ見ていると取りこぼす」というプッシュ商品の存在理由そのものでもある。</span></div>
+    <div class="fline bad"><span class="k">仮説B</span><span class="v"><b>半分だけ成立。スクリプトの自動判定は甘かったので訂正する。</b>日付フィールドは <code>acceptance_start / end</code> の2つだけで、これは<b>募集期間であって更新日時ではない</b>。自分でスナップショットを保存して差分を取れば<b>新着の検知はできる</b>が、<b>「既存の補助金の条件が変わった」は検知できない</b>。</span></div>
+    <div class="fline ok"><span class="k">収穫</span><span class="v">詳細APIには <code>institution_name</code>（実施機関）<code>industry</code> <code>subsidy_rate</code> <code>target_number_of_employees</code> <code>application_guidelines</code> <code>workflow</code> が揃っている。<b>事業者の属性を1回登録して、該当するものだけを配信する</b>設計に必要な材料は全部ある。</span></div>
+    <div class="fline bad"><span class="k">重い現実</span><span class="v">事前基準では生存だが、<b>jGrantsに載っていない6割は、既存の民間サービスが人力で埋めている領域</b>でもある。差別化を網羅性に求めるなら1,700自治体を自前で追うことになり、<b>「勝手に回る」の対極</b>に行く。</span></div>
+    <div class="fline todo"><span class="k">残す形</span><span class="v">網羅性では戦わない。<b>1業種に絞り、属性マッチング＋新着プッシュに商品を寄せる</b>。この形なら、既存の検索ポータルとは別の商品になる。</span></div>
   </div>
-</section>
+
+  </section>
 
 <section id="alive">
   <div class="sec-head"><span class="sec-num">03</span><h2>生きている案</h2></div>
@@ -225,16 +237,40 @@ footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-
   </div>
 
   <div class="run">
-    <div class="run-name">② 補助金案にとどめを刺す（か、生き返らせる）</div>
-    <div class="run-body">認証不要なので、そのまま実行できます。<b>数分で終わります。</b></div>
-    <div class="cmd">python3 scripts/jgrants_probe.py</div>
+    <div class="run-name">② 補助金　<span style="color:var(--brass)">実行済み・条件付き生存</span></div>
+    <div class="run-body">3,845件を取得。事前基準（総件数が既存を大きく下回り、全国比率が高い）を満たしたため、作り直す形でなら生存。</div>
   </div>
 
-  <div class="callout"><b>残りは②の1本だけです。</b>これを走らせれば、検証フェーズは終わり。あとは③（大会結果DB）と海外B（FAST）のどちらに時間を割くかという、<b>選択の問題になります。</b></div>
+  <div class="callout"><b>走らせるものは、もうありません。</b>2本とも実行して、①は脱落、②は条件付き生存。<b>ここから先は検証ではなく選択です。</b>下の「選択」を参照。</div>
+</section>
+
+<section id="choose">
+  <div class="sec-head"><span class="sec-num">06</span><h2>選択</h2></div>
+  <p class="sec-note">残った3つは、性格がはっきり分かれた。どれが「正しい」かではなく、<b>何を優先するか</b>で決まる。</p>
+
+  <div class="item">
+    <div class="item-top"><span class="item-name">②　補助金（1業種特化のプッシュ型）</span><span class="chip wait">速いが重い</span></div>
+    <div class="fline ok"><span class="k">強み</span><span class="v"><b>唯一、課題が検索される案</b>。「補助金 ◯◯」で顕在化した需要があるので、<b>広告で顧客を買える＝あなたの資金力が効く唯一の残存案。</b>B2B月額で単価も取れる。</span></div>
+    <div class="fline bad"><span class="k">弱み</span><span class="v">網羅性を上げるには1,700自治体を自前で追うことになり、運用が人力に寄る。競合も厚い。</span></div>
+  </div>
+
+  <div class="item">
+    <div class="item-top"><span class="item-name">③　育成年代の大会結果DB</span><span class="chip wait">本物だが最重量</span></div>
+    <div class="fline ok"><span class="k">強み</span><span class="v">非整形度が最も高く、独占できれば強い。スポーツの土地勘が効く。</span></div>
+    <div class="fline bad"><span class="k">弱み</span><span class="v">取得先が数百に分散し、構築コストが最大。加えて<b>未成年の個人情報の設計を先に済ませる必要がある。</b></span></div>
+  </div>
+
+  <div class="item live">
+    <div class="item-top"><span class="item-name">海外B　FASTチャンネル</span><span class="chip live">推奨</span></div>
+    <div class="fline ok"><span class="k">強み</span><span class="v">当初の要件「<b>勝手に回る</b>」に唯一そのまま応える。<b>競業リスクが最小</b>で、編成＝継続率の設計というあなたの強みが直接効く。コンテンツを作る必要がない。</span></div>
+    <div class="fline bad"><span class="k">弱み</span><span class="v">立ち上がりが遅い（アグリゲータ経由で3〜6ヶ月）。<b>広告で伸ばせない</b>ので資金力が効かない。権利処理を誤ると一発で終わる。</span></div>
+  </div>
+
+  <div class="callout"><b>推奨は FAST を主軸に、②を並走。</b>性格が正反対なので競合しません。FASTは交渉待ちの時間が長く、その間は手が空く——<b>その空き時間に、広告で需要を測れる②を回す</b>のが、資金と時間の両方を使い切る形になります。③は、この2つのどちらかが立ち上がってからで十分です。</div>
 </section>
 
 <section id="blocked">
-  <div class="sec-head"><span class="sec-num">05</span><h2>私の側で実行できなかった理由</h2></div>
+  <div class="sec-head"><span class="sec-num">07</span><h2>私の側で実行できなかった理由</h2></div>
   <p>APIを直接叩いて数字まで出すつもりでしたが、<strong>この実行環境の外向き通信が組織のネットワークポリシーで遮断されています</strong>。<code>api.edinet-fsa.go.jp</code> と <code>api.jgrants-portal.go.jp</code> はいずれも CONNECT が 403 で拒否され、コマンドライン経由でもページ取得経由でも到達できませんでした。許可されているのはパッケージレジストリなど一部のホストのみです。</p>
   <p>そこで、<strong>実行だけを手元に渡す形</strong>にしました。判定基準はスクリプトの中に埋め込んであるので、出力の最後に「作る／捨てる」まで出ます。<strong>あなたがやるのはコピペ2回です。</strong></p>
 
@@ -256,7 +292,7 @@ footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-
 </section>
 
 <footer>
-  検証の総括：30案 → 上位5案 → 4案 → いま生きているのは<b>③（重いが本物）と海外B（FAST）、未確定は②のみ</b>。①は実測29.3%で脱落しました。案は減りましたが、減った分だけ確度は上がっています。<b>潰れた案の数は、進捗の指標です。</b>
+  検証の総括：30案 → 上位5案 → 4案 → 残ったのは<b>②（条件付き）③（重い）海外B（推奨）</b>の3つ。①は実測29.3%、ショートドラマは取引条件で脱落しました。案は減りましたが、減った分だけ確度は上がっています。<b>潰れた案の数は、進捗の指標です。</b>
 </footer>
 
 </div>
