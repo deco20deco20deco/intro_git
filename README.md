@@ -35,6 +35,7 @@
 - [自動で回る30案](docs/business/ideas-30.html) — 「AIで大量生成して勝手に回す」路線での掛け合わせ30案＋キーワード表（20260829）
 - [金で時間を買う設計](docs/business/budget-unlocked.html) — 予算制約なし前提でのCAC×LTV計算、30案の再ランク、買収という選択肢（20260829）
 - [生き残った案](docs/business/verification-and-global.html) — 上位4案のデータ実在性・競合の一次情報検証と、海外マス層向け動画2案（20260829）
+- [在職中の線引き](docs/business/legal-screen.html) — 現職の事業範囲と照合した競業リスクの仕分け、事業ごとの法規制論点（20260829）
 
 ## データ準備チェックリスト
 

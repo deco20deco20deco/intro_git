@@ -1,0 +1,283 @@
+<title>在職中の線引き</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --paper:#F1F2ED; --card:#FAFAF8;
+  --ink:#17211E; --ink-2:#4B5551; --ink-3:#7B847F;
+  --rule:#DCDFD6; --rule-soft:#E7E9E1;
+  --accent:#1F6F5C; --accent-soft:#E2EDE7;
+  --brass:#96780F; --brass-soft:#F0E9D2;
+  --alert:#A2333F; --alert-soft:#F3E2E2;
+  --shadow:0 1px 2px rgba(23,33,30,.05), 0 6px 18px rgba(23,33,30,.045);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1413; --card:#171E1C;
+    --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+    --rule:#2A3431; --rule-soft:#212A28;
+    --accent:#57B896; --accent-soft:#17322A;
+    --brass:#D3B061; --brass-soft:#2C2716;
+    --alert:#E2818A; --alert-soft:#331E20;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1413; --card:#171E1C;
+  --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+  --rule:#2A3431; --rule-soft:#212A28;
+  --accent:#57B896; --accent-soft:#17322A;
+  --brass:#D3B061; --brass-soft:#2C2716;
+  --alert:#E2818A; --alert-soft:#331E20;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+}
+
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:17px; line-height:1.9; font-feature-settings:"palt" 1; overflow-x:hidden;
+}
+.wrap{max-width:44rem;margin:0 auto;padding:0 20px 6rem;}
+@media (min-width:700px){ .wrap{padding:0 32px 8rem;} }
+
+.masthead{padding:3.2rem 0 2rem;border-bottom:1px solid var(--rule);}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 1rem;}
+h1{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:clamp(1.85rem,7.5vw,2.6rem);line-height:1.38;margin:0;text-wrap:balance;}
+.dek{color:var(--ink-2);font-size:.98rem;line-height:1.85;margin:1.1rem 0 0;}
+.dek strong{color:var(--ink);}
+.disc{
+  font-size:.83rem;line-height:1.75;color:var(--ink-3);
+  border:1px dashed var(--rule);border-radius:8px;padding:.7rem .9rem;margin:1.3rem 0 0;
+}
+
+/* risk board */
+.board{display:flex;flex-direction:column;gap:.4rem;margin:1.6rem 0 0;}
+.brow{
+  display:flex;gap:.65rem;align-items:center;
+  background:var(--card);border:1px solid var(--rule);border-radius:9px;
+  padding:.6rem .8rem;box-shadow:var(--shadow);
+}
+.brow.red{border-color:var(--alert);border-width:1.5px;}
+.dot{width:.6rem;height:.6rem;border-radius:50%;flex:0 0 auto;}
+.dot.red{background:var(--alert);} .dot.amber{background:var(--brass);} .dot.green{background:var(--accent);}
+.brow-name{flex:1;font-size:.88rem;font-weight:700;line-height:1.5;}
+.brow-tag{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.66rem;letter-spacing:.05em;color:var(--ink-3);white-space:nowrap;}
+
+nav{display:flex;flex-wrap:wrap;gap:.4rem;margin:1.7rem 0 0;}
+nav a{font-size:.78rem;text-decoration:none;color:var(--ink-2);border:1px solid var(--rule);border-radius:100px;padding:.3rem .72rem;background:var(--card);}
+nav a:hover{border-color:var(--accent);color:var(--accent);}
+nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+section{padding:3rem 0 0;}
+.sec-head{display:flex;gap:.75rem;align-items:baseline;margin:0 0 .2rem;}
+.sec-num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.78rem;color:var(--accent);flex:0 0 auto;padding-top:.1rem;}
+h2{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:1.38rem;line-height:1.5;margin:0;text-wrap:balance;}
+.sec-note{font-size:.88rem;color:var(--ink-3);line-height:1.75;margin:.5rem 0 1.3rem;}
+h3{font-size:.98rem;font-weight:700;margin:2.1rem 0 .8rem;color:var(--ink);padding-left:.7rem;border-left:3px solid var(--accent);line-height:1.6;}
+p{margin:1rem 0;color:var(--ink-2);}
+strong{color:var(--ink);font-weight:700;}
+em{font-style:normal;color:var(--accent);font-weight:700;}
+a{color:var(--accent);}
+
+.case{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:1.05rem 1.1rem 1.15rem;margin:1rem 0;box-shadow:var(--shadow);
+}
+.case.red{border-color:var(--alert);border-width:1.5px;}
+.case.amber{border-color:var(--brass);}
+.case.green{border-color:var(--accent);}
+.case-top{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between;margin-bottom:.8rem;}
+.case-name{font-weight:700;font-size:1rem;line-height:1.5;flex:1;min-width:12rem;}
+.chip{font-size:.7rem;font-weight:700;letter-spacing:.05em;padding:.2rem .58rem;border-radius:100px;border:1px solid transparent;white-space:nowrap;}
+.chip.red{background:var(--alert);color:var(--card);}
+.chip.amber{background:var(--brass-soft);color:var(--brass);border-color:var(--brass);}
+.chip.green{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+
+.fline{display:flex;flex-direction:column;gap:.15rem;padding:.6rem 0;border-top:1px solid var(--rule-soft);}
+.fline:first-of-type{border-top:0;padding-top:0;}
+.fline .k{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.67rem;letter-spacing:.09em;color:var(--ink-3);}
+.fline.bad .k{color:var(--alert);}
+.fline.fix .k{color:var(--accent);}
+.fline .v{font-size:.89rem;line-height:1.74;color:var(--ink-2);}
+.fline .v b{color:var(--ink);}
+@media (min-width:560px){
+  .fline{flex-direction:row;gap:.9rem;align-items:baseline;}
+  .fline .k{flex:0 0 4.8rem;}
+  .fline .v{flex:1;}
+}
+
+.warn{border-left:3px solid var(--alert);background:var(--alert-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.3rem 0;font-size:.89rem;line-height:1.78;color:var(--ink-2);}
+.warn b{color:var(--ink);}
+.callout{border-left:3px solid var(--brass);background:var(--brass-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.3rem 0;font-size:.89rem;line-height:1.78;color:var(--ink-2);}
+.callout b{color:var(--ink);}
+
+ul.plain{list-style:none;padding:0;margin:1rem 0;display:flex;flex-direction:column;gap:.7rem;}
+ul.plain li{font-size:.91rem;line-height:1.78;color:var(--ink-2);padding-left:1.1rem;position:relative;}
+ul.plain li::before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+ol.steps{list-style:none;padding:0;margin:1rem 0;counter-reset:s;display:flex;flex-direction:column;gap:.85rem;}
+ol.steps li{counter-increment:s;position:relative;padding-left:2.1rem;font-size:.91rem;line-height:1.76;color:var(--ink-2);}
+ol.steps li::before{
+  content:counter(s);position:absolute;left:0;top:.26em;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.72rem;
+  width:1.45rem;height:1.45rem;border-radius:50%;border:1px solid var(--accent);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+}
+
+.src{font-size:.8rem;line-height:1.8;color:var(--ink-3);}
+.src a{color:var(--ink-2);}
+footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-size:.78rem;line-height:1.8;color:var(--ink-3);}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">法務スクリーニング / 在職中の副業</p>
+  <h1>在職中の線引き</h1>
+  <p class="dek">現職の事業範囲を確認した結果、<strong>私が「最速」として勧めた海外案Aは、競合のど真ん中でした。撤回します。</strong>全案を、雇用上のリスクと事業固有の法規制の2軸で並べ直した。</p>
+
+  <div class="disc">私は弁護士ではなく、これは<b>論点の洗い出し</b>です。最終的な判断は、実物の就業規則・入社時誓約書・秘密保持契約の条文と、必要なら専門家の確認によります。ここに書いた赤／黄／緑は、<b>どこを優先して確認すべきかの地図</b>として使ってください。</div>
+
+  <div class="board">
+    <div class="brow red"><span class="dot red"></span><span class="brow-name">海外A　ショートドラマの広告運用・グロース支援</span><span class="brow-tag">競合直撃</span></div>
+    <div class="brow"><span class="dot amber"></span><span class="brow-name">案B　スポーツクラブのCRM・継続率支援</span><span class="brow-tag">要設計変更</span></div>
+    <div class="brow"><span class="dot amber"></span><span class="brow-name">案A　軽量MMM（広告効果分解）</span><span class="brow-tag">前職とも隣接</span></div>
+    <div class="brow"><span class="dot green"></span><span class="brow-name">①　上場企業の広告宣伝費DB</span><span class="brow-tag">役務が違う</span></div>
+    <div class="brow"><span class="dot green"></span><span class="brow-name">③　育成年代の大会結果DB</span><span class="brow-tag">別論点あり</span></div>
+    <div class="brow"><span class="dot green"></span><span class="brow-name">海外B　FASTチャンネル</span><span class="brow-tag">別論点あり</span></div>
+    <div class="brow"><span class="dot green"></span><span class="brow-name">②　補助金の差分監視 ／ ④ 観戦ガイド</span><span class="brow-tag">雇用上は問題薄</span></div>
+  </div>
+
+  <nav>
+    <a href="#scope">現職の事業範囲</a>
+    <a href="#red">赤：撤回する案</a>
+    <a href="#amber">黄：条件付き</a>
+    <a href="#green">緑：進めてよい案</a>
+    <a href="#other">事業側の法務論点</a>
+    <a href="#todo">今週の確認事項</a>
+  </nav>
+</header>
+
+<section id="scope">
+  <div class="sec-head"><span class="sec-num">01</span><h2>現職の事業範囲</h2></div>
+  <p class="sec-note">競業にあたるかは「会社の名前」ではなく「役務と顧客層が重なるか」で決まる。まず公開情報で範囲を確定させた。</p>
+
+  <p>公開情報上、事業は大きく2階建てです。<strong>ツール</strong>——マルチチャネル統合MA（アプリのプッシュ通知、アプリ内メッセージ、Web接客、メール、LINE、A/Bテスト）、およびサイト速度改善。そして<strong>人による支援</strong>——アプリ収益最大化、CV最大化、ASOなどのマーケティング支援・コンサルティング／BPO。</p>
+
+  <div class="warn"><b>ここが決定的です。</b>現職は「ツールを売る会社」ではなく、<b>アプリ事業者に対してグロース支援そのものを役務として提供している</b>。つまり<b>アプリのマーケティング支援は、現職の商品カテゴリそのもの</b>。この一点で、私の前回の推奨は成立しません。</div>
+
+  <h3>判断に使った枠組み</h3>
+  <p>在職中の競業は、退職後の競業避止義務とは別の話です。退職後は職業選択の自由があるため限定的に解釈されますが、<strong>在職中は労働契約に付随する義務として、使用者と競合する業務を行わない義務がある</strong>とされ、加えて職務専念義務がかかります。就業規則に定めがあれば懲戒の対象にもなり得ます。</p>
+  <p>そのうえで、実務上リスクが跳ね上がるのは次の3つが重なるときです。<strong>①同じ役務 ②同じ顧客層 ③在職中に得た情報や関係の利用</strong>。以下はこの3点で仕分けています。</p>
+</section>
+
+<section id="red">
+  <div class="sec-head"><span class="sec-num">02</span><h2>赤：撤回する</h2></div>
+
+  <div class="case red">
+    <div class="case-top"><span class="case-name">海外A　ショートドラマアプリの広告運用・フック検証</span><span class="chip red">やらない</span></div>
+    <div class="fline bad"><span class="k">役務</span><span class="v"><b>完全に一致</b>。「アプリのユーザー獲得とグロースを、人が支援する」——これは現職が商品として売っているものそのもの。</span></div>
+    <div class="fline bad"><span class="k">顧客層</span><span class="v"><b>完全に一致</b>。ショートドラマアプリは、まさに現職が顧客・見込み顧客として想定する<b>アプリ事業者</b>。日本展開を狙う海外アプリという切り口は、なおさら重なる。</span></div>
+    <div class="fline bad"><span class="k">情報</span><span class="v">在職中に得たアプリ market の知見・ベンチマーク・人脈と、切り分けができない。<b>「使っていない」と証明することが構造的に不可能</b>な位置にある。</span></div>
+    <div class="fline bad"><span class="k">最悪の筋書き</span><span class="v">接触した先が現職の既存顧客または商談中の見込み顧客だった場合、<b>顧客奪取</b>の話になる。副業の中で最も重い類型。</span></div>
+    <div class="fline fix"><span class="k">結論</span><span class="v"><b>在職中は不可。</b>「最も早く月50万に届く」と書いたのは事実だが、届く理由がそのまま現職と競合する理由でした。<b>速いのは、同じ商売だからです。</b></span></div>
+  </div>
+
+  <div class="callout"><b>ただし、この市場を諦める必要はありません。</b>危ないのは<b>グロース支援（役務）</b>であって、<b>ショートドラマ市場そのもの</b>ではない。同じ市場でも、<b>作品を制作してライセンスする側</b>——つまりコンテンツの供給側に回れば、役務も顧客層も現職と重なりません。<b>私が前回「労働集約でスケールしない」として退けた側が、法務的には安全な側でした。</b>ここは評価をひっくり返します。</div>
+</section>
+
+<section id="amber">
+  <div class="sec-head"><span class="sec-num">03</span><h2>黄：設計を変えれば残る</h2></div>
+
+  <div class="case amber">
+    <div class="case-top"><span class="case-name">案B　スポーツクラブのCRM・継続率支援</span><span class="chip amber">要設計変更</span></div>
+    <div class="fline bad"><span class="k">問題</span><span class="v">前回は「隣接領域」程度に書いたが、実際はもっと近い。<b>「顧客のLTVを上げる」「継続率を設計する」「離反しそうな人に何を送るか決める」は、現職の商品説明とほぼ同じ言葉</b>。クラブが自社アプリを持っていれば、そのクラブは現職の見込み顧客ですらある。</span></div>
+    <div class="fline fix"><span class="k">残す形</span><span class="v"><b>①配信をやらない。</b>プッシュ通知やアプリ内メッセージの配信基盤には触れず、<b>分析とレポートに限定</b>する。②<b>アプリを持つクラブを顧客にしない</b>——チケットとファンクラブの台帳しかない団体に絞れば、現職の商圏と物理的に重ならない。</span></div>
+    <div class="fline fix"><span class="k">効果</span><span class="v">この2つを守れば「MAツールの代替を売っている」構図から外れる。<b>ただし、届出のうえで会社の了解を取るのが唯一の安全策</b>であることは変わらない。</span></div>
+  </div>
+
+  <div class="case amber">
+    <div class="case-top"><span class="case-name">案A　軽量MMM（広告効果分解）</span><span class="chip amber">二重の隣接</span></div>
+    <div class="fline bad"><span class="k">問題</span><span class="v"><b>前職と現職の両方に隣接する</b>という珍しい位置。前職はMMMそのものを売る会社、現職はマーケティング効果の改善を売る会社。どちらの秘密資産にも触れない線引きが要る。</span></div>
+    <div class="fline fix"><span class="k">残す形</span><span class="v">手法は<b>公開されているものだけ</b>（回帰、アドストック、飽和曲線）でゼロから組む。対象を<b>アプリ以外</b>（EC・D2C・実店舗）に限定すれば、現職との役務の重なりはかなり薄くなる。</span></div>
+  </div>
+</section>
+
+<section id="green">
+  <div class="sec-head"><span class="sec-num">04</span><h2>緑：雇用上の障害は薄い</h2></div>
+  <p class="sec-note">役務も顧客層も現職と重ならない案。ただし「競業でない」だけで、事業固有の法規制は次の章で別途かかる。</p>
+
+  <div class="case green">
+    <div class="case-top"><span class="case-name">①　上場企業の広告宣伝費DB</span><span class="chip green">進めてよい</span></div>
+    <div class="fline"><span class="k">理由</span><span class="v">売るのは<b>データセット</b>であって、マーケティングの実行支援ではない。顧客がマーケターである点は重なるが、<b>提供する役務が違えば競業にはあたりにくい</b>。現職が販売していない商品カテゴリ。</span></div>
+  </div>
+
+  <div class="case green">
+    <div class="case-top"><span class="case-name">③　育成年代の大会結果DB ／ ④ 観戦ガイド ／ ② 補助金監視</span><span class="chip green">進めてよい</span></div>
+    <div class="fline"><span class="k">理由</span><span class="v">いずれも役務・顧客層ともに現職と接点がない。<b>雇用上の論点としては最も軽い。</b></span></div>
+  </div>
+
+  <div class="case green">
+    <div class="case-top"><span class="case-name">海外B　FASTチャンネル</span><span class="chip green">進めてよい</span></div>
+    <div class="fline"><span class="k">理由</span><span class="v">メディア運営であり、現職はメディア事業者ではない。<b>「勝手に回る」度が最高で、かつ競業リスクが最も低い</b>——この2つが同時に成立する唯一の案になりました。</span></div>
+    <div class="fline bad"><span class="k">注意</span><span class="v">チャンネルの集客のために<b>自分でアプリを作って伸ばす</b>方向に踏み込むと、その瞬間に赤に変わる。<b>アプリのグロースには手を出さない</b>という一線だけ守ること。</span></div>
+  </div>
+</section>
+
+<section id="other">
+  <div class="sec-head"><span class="sec-num">05</span><h2>事業側の法務論点</h2></div>
+  <p class="sec-note">競業とは別に、案ごとにかかる規制。緑の案でも、ここで止まるものがある。</p>
+
+  <h3>データ取得（①②③に共通）</h3>
+  <ul class="plain">
+    <li><strong>公開データにも利用規約がある。</strong>EDINETもjGrantsも、二次利用の可否と条件が規約で定められている。<strong>「公開されている＝自由に商用利用できる」ではない。</strong>各APIの利用規約を、実装前に読むこと。</li>
+    <li><strong>スクレイピングは3つの別問題が重なる。</strong>①著作権（情報解析目的の複製は認められる余地があるが、DBそのものの複製は別）②<strong>サイト利用規約違反という契約上の問題</strong>③アクセス頻度によるサーバ負荷。<strong>②が最も見落とされ、最も現実に揉める。</strong></li>
+  </ul>
+
+  <h3>③ 未成年の個人情報（この案の最大の壁）</h3>
+  <p>公表されている情報であっても、氏名と所属と成績が結びつけば<strong>個人情報</strong>です。しかも対象が未成年。<strong>利用目的の特定と公表、本人・保護者からの削除請求への対応窓口、検索エンジンへの露出制御</strong>を、公開の前に用意しておく必要があります。<strong>始めてから整えるのでは間に合わない類型</strong>なので、①より優先度の高い確認事項として扱ってください。</p>
+
+  <h3>海外・動画まわり</h3>
+  <ul class="plain">
+    <li><strong>未成年をターゲットにすると規制が跳ね上がる。</strong>米国のCOPPA（13歳未満）、EUのGDPRにおける子どもの同意、英国のAge Appropriate Design Code。<strong>「子ども向け」と判定されると、行動ターゲティング広告が使えなくなる</strong>——収益モデルそのものが崩れます。ターゲット設定は感覚ではなく、<strong>規制上の「子ども向け」判定を避ける形で明示的に設計</strong>してください。</li>
+    <li><strong>FASTの権利処理。</strong>パブリックドメインの判定は国ごとに違い（日本と米国で保護期間の計算が異なる）、さらに<strong>映像の権利が切れていても、音楽・字幕・吹替は別権利</strong>。ここを間違えると配信停止では済みません。</li>
+    <li><strong>広告表示。</strong>日本ではステルスマーケティングが景品表示法上の不当表示として規制対象。アフィリエイトやPRを使うなら表記が必須です。</li>
+  </ul>
+</section>
+
+<section id="todo">
+  <div class="sec-head"><span class="sec-num">▶</span><h2>今週の確認事項</h2></div>
+  <p class="sec-note">事業を1ミリも進める前に、これを終わらせるのが結果的にいちばん速い。</p>
+
+  <ol class="steps">
+    <li><strong>就業規則の該当条文を特定する。</strong>探すのは4つ——①副業・兼業の規定（許可制か届出制か禁止か）②競業避止の条項（在職中の範囲）③秘密保持 ④<strong>職務発明・著作権の帰属</strong>。特に④は見落とされがちで、<strong>会社の設備や就業時間で作ったものが会社に帰属する</strong>と定められていることがあります。</li>
+    <li><strong>入社時の誓約書と秘密保持契約を読み直す。</strong>就業規則より広い義務が書かれていることがある。手元になければ人事に請求できます。</li>
+    <li><strong>許可制なら、正直に出して許可を取る。</strong>これが最強の防御です。書く内容は「顧客層が重ならないこと」「現職の情報を使わないこと」「稼働は就業時間外・私物の環境のみ」の3点。<strong>曖昧に書くより、範囲を狭く明示したほうが通ります。</strong></li>
+    <li><strong>物理的に分ける。</strong>会社PC・会社アカウント・会社ネットワークを一切使わない。副業用に別の環境と別のメールアドレスを立てる。<strong>疑われたときに反証できる状態を、最初から作っておくこと。</strong></li>
+    <li><strong>③をやるなら、未成年の掲載ポリシーを先に書く。</strong>コードより先にこれです。</li>
+  </ol>
+
+  <div class="callout"><b>順番について。</b>前回「4（海外A）→ 1 → 3」を勧めましたが、海外Aが消えたので<b>①の網羅率カウント → 海外B（FAST）の権利がクリアな在庫探し → ③（ポリシー設計から）</b>に組み替えます。①は今週中に終わります。</div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">§</span><h2>参照した情報</h2></div>
+  <p class="src">
+    <a href="https://repro.io/">Repro（マルチチャネル統合MA＆サイトスピード高速化）</a>　·
+    <a href="https://repro.io/products/appmarketing/">Repro App（アプリ運用・グロース・CRM）</a>　·
+    <a href="https://repro.io/bpo/appimprove/">アプリ収益最大化サービス（アプリマーケティング・運用・CRM支援）</a>　·
+    <a href="https://www.meti.go.jp/policy/economy/chizai/chiteki/pdf/handbook/reference5.pdf">競業避止義務契約の有効性について／経済産業省</a>　·
+    <a href="https://xn--alg-li9dki71toh.com/roumu/non-competition/working-retiring/">従業員の副業と競業行為について</a>　·
+    <a href="https://saponet.mynavi.jp/column/detail/ty_romu_t01_non-compete-obligation_221013.html">競業避止義務について</a>
+  </p>
+</section>
+
+<footer>
+  この文書は公開情報に基づく論点整理であり、法的助言ではありません。赤・黄の案について実際に動く前には、就業規則の実物と、必要に応じて専門家の確認を取ってください。<b>なお「バレなければよい」という設計だけは避けること</b>——副業が問題になるのはたいてい、成功して目立ったときです。
+</footer>
+
+</div>
