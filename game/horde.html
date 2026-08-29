@@ -130,6 +130,10 @@
   .results b{font-family:var(--display);font-size:20px;font-weight:400;display:block;color:var(--sand)}
   .results span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim)}
 
+  #cardWrap{display:flex;flex-direction:column;gap:8px}
+  #cardImg{width:100%;display:block;border:2px solid var(--line);background:#1f1b16}
+  #shareNote{font-size:11px;color:var(--plasma);min-height:14px;letter-spacing:.04em}
+  .seedline{font-size:11px;color:var(--ink-dim);letter-spacing:.1em;font-variant-numeric:tabular-nums}
   .talent{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:2px solid var(--line);padding:9px 11px}
   .talent .meter{display:flex;gap:2px;margin-top:4px}
   .talent .meter i{width:11px;height:4px;background:#141210;display:block}
@@ -166,8 +170,10 @@
     <p>移動：ドラッグ／<kbd>WASD</kbd><kbd>←↑↓→</kbd>　停止：<kbd>P</kbd></p>
     <div class="foot" style="margin-top:8px">
       <button id="startBtn">出撃する</button>
-      <button class="ghost" id="talentBtn">恒久強化</button>
+      <button class="ghost" id="dailyBtn">今日の挑戦</button>
     </div>
+    <div style="display:flex"><button class="ghost" id="talentBtn" style="flex:1">恒久強化</button></div>
+    <div class="seedline" id="dailyNote"></div>
   </div>
 
   <div class="overlay mid" id="levelScreen">
@@ -192,19 +198,17 @@
     </div>
   </div>
 
-  <div class="overlay mid" id="overScreen">
-    <div class="eyebrow">Overrun</div>
-    <h1>全滅</h1>
-    <div class="results">
-      <div><b id="rWave">1</b><span>wave</span></div>
-      <div><b id="rTime">0:00</b><span>survived</span></div>
-      <div><b id="rKills">0</b><span>kills</span></div>
-      <div><b id="rBank">0</b><span>banked</span></div>
+  <div class="overlay" id="overScreen">
+    <div class="eyebrow" id="overEyebrow">Overrun</div>
+    <div id="cardWrap">
+      <img id="cardImg" alt="ランの結果カード">
+      <div id="shareNote"></div>
     </div>
-    <div class="foot" style="margin-top:8px">
-      <button id="againBtn">もう一度</button>
-      <button class="ghost" id="talentBtn2">恒久強化</button>
+    <div class="foot">
+      <button id="shareBtn">結果を共有</button>
+      <button class="ghost" id="againBtn">もう一度</button>
     </div>
+    <div style="display:flex"><button class="ghost" id="talentBtn2" style="flex:1">恒久強化</button></div>
   </div>
 
   <div class="overlay" id="talentScreen">
@@ -285,7 +289,9 @@ const WMAX = 5;               // 武器の最大レベル（ここで進化可�
 const TYPES = {
   walker: { r: 7,  hp: 6,   spd: 52, dmg: 9,  col: "#4a4f42", head: "#798a5c", xp: 1 },
   runner: { r: 6,  hp: 6,   spd: 96, dmg: 7,  col: "#5b4442", head: "#a06a4e", xp: 1 },
-  brute:  { r: 13, hp: 62,  spd: 40, dmg: 22, col: "#3c4a3a", head: "#6f9350", xp: 5 },
+  brute:  { r: 13, hp: 62,  spd: 40, dmg: 22, col: "#3c4a3a", head: "#6f9350", xp: 5, armor: .5 },
+  spitter:{ r: 8,  hp: 13,  spd: 44, dmg: 6,  col: "#46583a", head: "#b6d84a", xp: 2, range: 235 },
+  bomber: { r: 9,  hp: 9,   spd: 94, dmg: 8,  col: "#6b3a2e", head: "#e2a33c", xp: 2, boom: true },
   boss:   { r: 34, hp: 430, spd: 30, dmg: 34, col: "#3f5a30", head: "#8fd14a", xp: 60 },
 };
 
@@ -333,7 +339,7 @@ const ITEMS = [
   { id: "reso",   name: "共鳴コア ★",   rar: 2, desc: "範囲 +25%（ノヴァ進化）",   apply: s => s.area *= 1.25 },
   { id: "bear",   name: "重装軸受 ★",   rar: 2, desc: "刃の速度 +40%（オービット進化）", apply: s => s.orbSpd *= 1.4 },
   { id: "engine", name: "過給機",       rar: 3, desc: "連射速度 +22% / 移動 +10%", apply: s => { s.rate *= .78; s.move *= 1.1; } },
-  { id: "titan",  name: "巨人の心臓",   rar: 3, desc: "最大HP +90 / 毎秒 +1.2 回復", apply: s => { s.hp += 90; s.regen += 1.2; } },
+  { id: "titan",  name: "巨人の心臓",   rar: 3, desc: "最大HP +90 / 毎秒 +0.7 回復", apply: s => { s.hp += 90; s.regen += .7; } },
 ];
 const RAR_NAME = ["COMMON", "RARE", "EPIC", "LEGEND"];
 const RAR_CLASS = ["c", "r", "e", "l"];
@@ -354,7 +360,7 @@ const LEVELUPS = [
   { g: "RPM", name: "連射",       desc: "+8%",       apply: s => s.rate *= .92 },
   { g: "SPD", name: "移動速度",   desc: "+6%",       apply: s => s.move *= 1.06 },
   { g: "HP",  name: "最大HP",     desc: "+18／全快寄り", apply: s => { s.hp += 18; } },
-  { g: "REG", name: "自己修復",   desc: "毎秒 +0.4", apply: s => s.regen += .4 },
+  { g: "REG", name: "自己修復",   desc: "毎秒 +0.25", apply: s => s.regen += .25 },
   { g: "MAG", name: "回収範囲",   desc: "+18%",      apply: s => s.magnet *= 1.18 },
   { g: "CRT", name: "クリ率",     desc: "+4%",       apply: s => s.crit += .04 },
   { g: "ARE", name: "範囲",       desc: "+10%",      apply: s => s.area *= 1.10 },
@@ -393,9 +399,10 @@ loadSave();
 // =====================================================================
 //  state
 // =====================================================================
-let P, enemies, bullets, beams, drops, parts, texts, grid;
+let P, enemies, bullets, beams, eshots, drops, parts, texts, grid;
 let time, wave, waveT, kills, coins, spawnAcc, shake, boss, hitStop;
 let running, over, paused, rerolls, freeRerolls, offers, bossSpawned;
+let runSeed = "-", dailyMode = false, rngW = Math.random;
 
 function baseStats() {
   return {
@@ -412,7 +419,10 @@ function applyTalents(s) {
   s.xpMul *= 1 + .06 * tlv("scholar");
 }
 
-function resetGame() {
+function resetGame(seed, daily) {
+  runSeed = seed || freshSeed();
+  dailyMode = !!daily;
+  rngW = stream("wave", 1);
   const s = baseStats();
   applyTalents(s);
   P = {
@@ -421,7 +431,7 @@ function resetGame() {
     s, hp: s.hp, weapons: [], items: [],
   };
   addWeapon("bolt");
-  enemies = []; bullets = []; beams = []; drops = []; parts = []; texts = [];
+  enemies = []; bullets = []; beams = []; eshots = []; drops = []; parts = []; texts = [];
   time = 0; wave = 1; waveT = WAVE_LEN; kills = 0; spawnAcc = 0; shake = 0;
   hitStop = 0; boss = null; bossSpawned = false; over = false; paused = false;
   coins = 15 * tlv("trader");
@@ -605,6 +615,30 @@ function readInput() {
 // =====================================================================
 function rand(a, b) { return a + Math.random() * (b - a); }
 function pick(arr) { return arr[Math.random() * arr.length | 0]; }
+
+// --- seeded streams: 同じシードなら同じ湧き方・同じ品揃えになる ---
+function hash32(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+// ラベルごとに独立した流れを作る＝引き直し回数が違っても品揃えは全員同じ
+function stream(...parts) { return mulberry32(hash32(runSeed + "|" + parts.join("|"))); }
+function randW(a, b) { return a + rngW() * (b - a); }
+function pickR(r, arr) { return arr[r() * arr.length | 0]; }
+function todaySeed() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function freshSeed() { return Math.random().toString(36).slice(2, 8).toUpperCase(); }
 function addText(x, y, txt, col) {
   if (texts.length > 46) return;
   texts.push({ x, y, txt, col, t: .55 });
@@ -626,25 +660,27 @@ function banner(txt) {
 //  spawning / waves
 // =====================================================================
 function spawnRing() {
-  const a = Math.random() * 6.2832;
-  const d = Math.max(W, H) * .62 + rand(20, 90);
+  const a = rngW() * 6.2832;
+  const d = Math.max(W, H) * .62 + randW(20, 90);
   return { x: P.x + Math.cos(a) * d, y: P.y + Math.sin(a) * d };
 }
 function spawnEnemy(kind) {
-  const t = TYPES[kind], p = spawnRing(), scale = 1 + (wave - 1) * .34;
+  // プレイヤーの成長は乗算なので、敵も乗算で追わないと数ウェーブで置き去りになる
+  const t = TYPES[kind], p = spawnRing(), scale = Math.pow(1.31, wave - 1);
   const e = {
     x: p.x, y: p.y, kind, r: t.r,
     hp: t.hp * scale, maxHp: t.hp * scale,
-    spd: t.spd * (1 + (wave - 1) * .012) * rand(.9, 1.1),
-    dmg: t.dmg * (1 + (wave - 1) * .1),
+    spd: t.spd * Math.min(1.9, 1 + (wave - 1) * .05) * randW(.9, 1.1),
+    dmg: t.dmg * Math.pow(1.13, wave - 1),
     xp: t.xp, hit: 0, orbCd: 0, ph: Math.random() * 6.28,
+    armor: t.armor || 1, fireCd: randW(.4, 2.2),
   };
   enemies.push(e);
   return e;
 }
 function spawnBoss() {
   const b = spawnEnemy("boss");
-  b.hp = b.maxHp = TYPES.boss.hp * (1 + (wave - 1) * .38);
+  b.hp = b.maxHp = TYPES.boss.hp * Math.pow(1.33, wave - 1);
   boss = b;
   banner("BOSS");
   if (!reduceMotion) shake = 14;
@@ -655,7 +691,7 @@ function endWave() {
   paused = true;   // ここでのレベルアップはショップを閉じた後にまとめて出す
   // 残った敵は塵に、落ちているものは全部回収してからショップへ
   for (const e of enemies) burst(e.x, e.y, 2, "#6b5a3c", 70);
-  enemies.length = 0; boss = null;
+  enemies.length = 0; eshots.length = 0; boss = null;
   for (const g of drops) { gainXp(g.xp); if (g.coin) coins += Math.round(2 * P.s.fortune); }
   drops.length = 0;
   coins += Math.round(P.s.harvest);
@@ -672,8 +708,27 @@ function damage(e, dmg) {
   if (e.hp <= 0) { killEnemy(e); return; }
   if (crit || e.kind === "boss") addText(e.x, e.y - e.r - 6, Math.round(dmg), crit ? "#ffe08a" : "#ffd9a0");
 }
+let explDepth = 0;
+function explode(e) {
+  const R = 54;
+  parts.push({ ring: true, x: e.x, y: e.y, r0: 6, r1: R, t: .26, max: .26 });
+  burst(e.x, e.y, 10, "#e2a33c", 190);
+  if ((P.x - e.x) ** 2 + (P.y - e.y) ** 2 < (R + P.r) ** 2) {
+    P.hp -= 14 * Math.pow(1.11, wave - 1); P.hurtT = .22;
+    if (!reduceMotion) shake = Math.max(shake, 7);
+  }
+  if (explDepth > 3) return;              // 自爆の連鎖は3段まで
+  explDepth++;
+  const dmg = 30 * Math.pow(1.28, wave - 1);
+  for (const o of enemies) {
+    if (o.dead || o === e) continue;
+    if ((o.x - e.x) ** 2 + (o.y - e.y) ** 2 < R * R) damage(o, dmg);
+  }
+  explDepth--;
+}
 function killEnemy(e) {
   e.dead = true; kills++;
+  if (TYPES[e.kind].boom) explode(e);
   burst(e.x, e.y, e.kind === "boss" ? 34 : 4, "#8e2f28", e.kind === "boss" ? 260 : 120);
   if (P.s.leech) {
     P.killStreak++;
@@ -684,12 +739,12 @@ function killEnemy(e) {
     drops.push({
       x: e.x + rand(-e.r, e.r), y: e.y + rand(-e.r, e.r),
       vx: rand(-40, 40), vy: rand(-40, 40),
-      xp: e.xp / n, coin: Math.random() < .45 || e.kind === "boss",
+      xp: e.xp / n, coin: rngW() < .45 || e.kind === "boss",
     });
   }
   if (e === boss) {
     boss = null; banner("BOSS DOWN");
-    P.hp = Math.min(P.s.hp, P.hp + 25);
+    P.hp = Math.min(P.s.hp, P.hp + 12);
     if (!reduceMotion) { shake = 16; hitStop = .1; }
   }
 }
@@ -719,11 +774,16 @@ function update(dt) {
   while (spawnAcc >= 1) {
     spawnAcc -= 1;
     if (enemies.length >= SPAWN_CAP) break;
-    const r = Math.random();
-    const kind = (wave >= 3 && r < .1) ? "brute" : (wave >= 2 && r < .38) ? "runner" : "walker";
+    const r = rngW();
+    let kind = "walker";
+    if (wave >= 5 && r < .05) kind = "bomber";
+    else if (wave >= 3 && r < .12) kind = "spitter";
+    else if (wave >= 3 && r < .20) kind = "brute";
+    else if (wave >= 2 && r < .40) kind = "runner";
     spawnEnemy(kind);
   }
-  if (wave % 2 === 0 && !bossSpawned && waveT < WAVE_LEN - 4) { bossSpawned = true; spawnBoss(); }
+  const bossWave = wave >= 7 ? true : wave % 2 === 0;
+  if (bossWave && !bossSpawned && waveT < WAVE_LEN - 4) { bossSpawned = true; spawnBoss(); }
 
   // spatial hash
   grid = new Map();
@@ -769,8 +829,32 @@ function update(dt) {
     e.ph += dt * 6;
     const wob = e.kind === "boss" ? 0 : Math.sin(e.ph) * .22;
     dx /= d; dy /= d;
-    e.x += (dx - dy * wob) * e.spd * dt;
-    e.y += (dy + dx * wob) * e.spd * dt;
+    const T = TYPES[e.kind];
+    if (e.kind === "boss") {
+      e.fireCd -= dt;
+      if (e.fireCd <= 0) {                 // 周囲に弾をばら撒く。避けるしかない
+        e.fireCd = 4.2;
+        for (let k = 0; k < 12; k++) {
+          const a = (k / 12) * 6.2832 + Math.random() * .2;
+          eshots.push({ x: e.x, y: e.y, vx: Math.cos(a) * 165, vy: Math.sin(a) * 165, dmg: e.dmg * .7, life: 4 });
+        }
+        if (!reduceMotion) shake = Math.max(shake, 6);
+      }
+    }
+    if (T.range) {
+      // 射手は間合いを取って撃つ。立ち止まると当たる＝動く理由になる
+      const closing = d > T.range ? 1 : d < T.range * .75 ? -.7 : 0;
+      e.x += (dx * closing - dy * .5) * e.spd * dt;
+      e.y += (dy * closing + dx * .5) * e.spd * dt;
+      e.fireCd -= dt;
+      if (e.fireCd <= 0 && d < T.range * 1.5) {
+        e.fireCd = 2.8;
+        eshots.push({ x: e.x, y: e.y, vx: dx * 185, vy: dy * 185, dmg: e.dmg * 1.6, life: 3 });
+      }
+    } else {
+      e.x += (dx - dy * wob) * e.spd * dt;
+      e.y += (dy + dx * wob) * e.spd * dt;
+    }
     e.hit = Math.max(0, e.hit - dt);
     e.orbCd = Math.max(0, e.orbCd - dt);
     if (d < e.r + P.r) {
@@ -779,7 +863,7 @@ function update(dt) {
     }
   }
   if (contact > 0) {
-    P.hp -= Math.min(contact, 20 + wave * 1.6) * dt;
+    P.hp -= Math.min(contact, 16 * Math.pow(1.16, wave - 1)) * dt;
     P.hurtT = .18;
     if (P.hp <= 0) { gameOver(); return; }
   }
@@ -797,7 +881,7 @@ function update(dt) {
         if (e.dead) continue;
         const rr = e.r + b.r;
         if ((e.x - b.x) ** 2 + (e.y - b.y) ** 2 < rr * rr) {
-          damage(e, b.dmg);
+          damage(e, b.dmg * e.armor);
           burst(b.x, b.y, 2, "#bff7f0", 90);
           if (b.pierce-- <= 0) { b.dead = true; break; }
         }
@@ -822,6 +906,15 @@ function update(dt) {
   }
 
   for (const b of beams) { b.t -= dt; if (b.t <= 0) b.dead = true; }
+  for (const q of eshots) {
+    q.life -= dt;
+    if (q.life <= 0) { q.dead = true; continue; }
+    q.x += q.vx * dt; q.y += q.vy * dt;
+    if ((q.x - P.x) ** 2 + (q.y - P.y) ** 2 < (P.r + 6) ** 2) {
+      q.dead = true; P.hp -= q.dmg; P.hurtT = .22;
+      burst(q.x, q.y, 4, "#b6d84a", 120);
+    }
+  }
   for (const p of parts) {
     p.t -= dt;
     if (p.t <= 0) { p.dead = true; continue; }
@@ -833,11 +926,13 @@ function update(dt) {
   enemies = enemies.filter(alive);
   bullets = bullets.filter(alive);
   beams = beams.filter(alive);
+  eshots = eshots.filter(alive);
   drops = drops.filter(alive);
   parts = parts.filter(alive);
   texts = texts.filter(alive);
   if (shake > 0) shake = Math.max(0, shake - dt * 42);
 
+  if (P.hp <= 0 && !over) { gameOver(); return; }
   if (waveT <= 0) endWave();
 }
 
@@ -886,6 +981,14 @@ function draw() {
     ctx.moveTo(b.x, b.y);
     ctx.lineTo(b.x + Math.cos(b.a) * b.len, b.y + Math.sin(b.a) * b.len);
     ctx.stroke();
+  }
+
+  // enemy shots
+  for (const q of eshots) {
+    ctx.fillStyle = "#39481f";
+    ctx.beginPath(); ctx.arc(q.x, q.y, 7, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = "#b6d84a";
+    ctx.beginPath(); ctx.arc(q.x, q.y, 4.5, 0, 6.2832); ctx.fill();
   }
 
   // bullets (one batched stroke)
@@ -995,8 +1098,9 @@ function openLevelUp() {
   box.innerHTML = "";
   el("lvTitle").textContent = "LV " + P.lv + " ─ 強化を選べ";
   const pool = LEVELUPS.slice();
+  const rl = stream("lv", P.lv);
   for (let i = 0; i < 3 && pool.length; i++) {
-    const u = pool.splice(Math.random() * pool.length | 0, 1)[0];
+    const u = pool.splice(rl() * pool.length | 0, 1)[0];
     const b = document.createElement("button");
     b.className = "card";
     b.innerHTML = `<span class="glyph rr">${u.g}</span>
@@ -1018,9 +1122,9 @@ function openLevelUp() {
 // =====================================================================
 //  shop
 // =====================================================================
-function rarityRoll() {
+function rarityRoll(rs) {
   const luck = P.s.luck;
-  const r = Math.random() * (100 + luck * 14) + Math.min(wave * 1.5, 22);
+  const r = rs() * (100 + luck * 14) + Math.min(wave * 1.5, 22);
   if (r > 96) return 3;
   if (r > 82) return 2;
   if (r > 55) return 1;
@@ -1035,27 +1139,28 @@ function priceOf(offer) {
   }
   return Math.round(RAR_PRICE[ITEMS.find(i => i.id === offer.id).rar] * infl);
 }
-function rollOffer() {
+function rollOffer(rs) {
   const weaponIds = Object.keys(WEAPONS).filter(k => !WEAPONS[k].evolved);
-  const wantWeapon = Math.random() < .45;
+  const wantWeapon = rs() < .45;
   if (wantWeapon) {
     // 手持ちの強化か、空きスロットへの新規
     const upgradable = P.weapons.filter(w => !WEAPONS[w.id].evolved && w.lv < WMAX).map(w => w.id);
     const fresh = P.weapons.length < SLOTS ? weaponIds.filter(k => !P.weapons.some(w => w.id === k)) : [];
     const poolW = upgradable.concat(fresh);
-    if (poolW.length) return { type: "weapon", id: pick(poolW) };
+    if (poolW.length) return { type: "weapon", id: pickR(rs, poolW) };
   }
-  const rar = rarityRoll();
+  const rar = rarityRoll(rs);
   let poolI = ITEMS.filter(i => i.rar === rar);
   if (!poolI.length) poolI = ITEMS;
-  return { type: "item", id: pick(poolI).id };
+  return { type: "item", id: pickR(rs, poolI).id };
 }
 function rollOffers() {
+  const rs = stream("shop", wave, rerolls);           // ウェーブと引き直し回数で決まる
   offers = [];
   for (let i = 0; i < 4; i++) {
     let o = null;
     for (let tries = 0; tries < 8; tries++) {        // 同じ品を並べない
-      o = rollOffer();
+      o = rollOffer(rs);
       if (!offers.some(x => x.type === o.type && x.id === o.id)) break;
     }
     offers.push(o);
@@ -1152,7 +1257,8 @@ el("rerollBtn").onclick = () => {
 el("goBtn").onclick = () => {
   el("shopScreen").classList.remove("on");
   wave++; waveT = WAVE_LEN; spawnAcc = 0; bossSpawned = false;
-  P.hp = Math.min(P.s.hp, P.hp + P.s.hp * .15);   // ウェーブ間に少し回復
+  rngW = stream("wave", wave);
+  P.hp = Math.min(P.s.hp, P.hp + P.s.hp * .08);   // ウェーブ間に少しだけ回復
   banner("WAVE " + wave);
   paused = pendingLevels > 0;
   if (pendingLevels > 0) openLevelUp();
@@ -1199,14 +1305,162 @@ el("talentBack").onclick = () => el("talentScreen").classList.remove("on");
 // =====================================================================
 //  flow
 // =====================================================================
+
+// =====================================================================
+//  result card — 共有できる1枚絵をその場で描く
+// =====================================================================
+let cardCanvas = null, cardUrl = null, lastRes = null;
+
+function buildLabels() {
+  const ws = P.weapons.map(w => ({
+    t: `${WEAPONS[w.id].name} ${w.lv}`,
+    evo: !!WEAPONS[w.id].evolved,
+  }));
+  const counted = {};
+  for (const id of P.items) counted[id] = (counted[id] | 0) + 1;
+  const its = Object.keys(counted).map(id => ({
+    t: ITEMS.find(x => x.id === id).name + (counted[id] > 1 ? " x" + counted[id] : ""),
+    evo: false,
+  }));
+  return { ws, its };
+}
+function chipRow(g, list, x, y, maxW, size) {
+  let cx = x, cy = y;
+  g.font = `600 ${size}px "Chakra Petch", sans-serif`;
+  g.textAlign = "left"; g.textBaseline = "middle";
+  for (const it of list) {
+    const w = g.measureText(it.t).width + 34;
+    if (cx + w > x + maxW) { cx = x; cy += size + 26; }
+    g.fillStyle = "#141210"; g.fillRect(cx, cy, w, size + 18);
+    g.strokeStyle = it.evo ? "#ffc53d" : "#4a3d2d"; g.lineWidth = 2;
+    g.strokeRect(cx + 1, cy + 1, w - 2, size + 16);
+    g.fillStyle = it.evo ? "#ffc53d" : it.dim ? "#a2947f" : "#46e0d2";
+    g.fillText(it.t, cx + 17, cy + (size + 18) / 2);
+    cx += w + 10;
+  }
+  return cy + size + 18;
+}
+async function buildCard(res) {
+  try { await document.fonts.ready; } catch (e) {}
+  const c = document.createElement("canvas");
+  c.width = 1080; c.height = 1350;
+  const g = c.getContext("2d");
+
+  g.fillStyle = "#1f1b16"; g.fillRect(0, 0, 1080, 1350);
+
+  // 砂の帯 — ゲーム画面と同じ地面をヘッダーに使う
+  const pat = g.createPattern(tile, "repeat");
+  g.fillStyle = pat; g.fillRect(0, 0, 1080, 300);
+  const vg = g.createLinearGradient(0, 140, 0, 300);
+  vg.addColorStop(0, "rgba(31,27,22,0)"); vg.addColorStop(1, "rgba(31,27,22,1)");
+  g.fillStyle = vg; g.fillRect(0, 140, 1080, 160);
+
+  g.textAlign = "left"; g.textBaseline = "alphabetic";
+  g.font = '400 74px "Bungee", sans-serif';
+  g.fillStyle = "#16130f";
+  g.fillText("DUST HORDE", 64, 130);
+  g.font = '700 26px "Chakra Petch", sans-serif';
+  g.fillStyle = "rgba(22,19,15,.72)";
+  g.fillText(res.daily ? `DAILY CHALLENGE  ${res.seed}` : `FREE RUN  SEED ${res.seed}`, 68, 174);
+
+  // 到達ウェーブ
+  g.fillStyle = "#a2947f";
+  g.font = '700 28px "Chakra Petch", sans-serif';
+  g.fillText("REACHED", 64, 400);
+  g.fillStyle = "#e3c68b";
+  g.font = '400 210px "Bungee", sans-serif';
+  g.fillText("WAVE " + res.wave, 60, 570);
+
+  // 数字4つ
+  const cells = [["SURVIVED", res.timeStr], ["KILLS", String(res.kills)], ["LEVEL", String(res.lv)], ["BANKED", res.banked + " \u00a4"]];
+  cells.forEach((cell, i) => {
+    const x = 64 + (i % 2) * 500, y = 660 + Math.floor(i / 2) * 130;
+    g.fillStyle = "#2a241d"; g.fillRect(x, y, 460, 106);
+    g.fillStyle = "#a2947f"; g.font = '700 22px "Chakra Petch", sans-serif';
+    g.fillText(cell[0], x + 22, y + 38);
+    g.fillStyle = "#f3e9d8"; g.font = '400 52px "Bungee", sans-serif';
+    g.fillText(cell[1], x + 20, y + 90);
+  });
+
+  // ビルド
+  const L = buildLabels();
+  g.fillStyle = "#46e0d2"; g.font = '700 24px "Chakra Petch", sans-serif';
+  g.textBaseline = "alphabetic";
+  g.fillText("BUILD", 64, 980);
+  let y = chipRow(g, L.ws, 64, 1000, 952, 34);
+  y = chipRow(g, L.its.map(o => ({ t: o.t, evo: false, dim: true })), 64, y + 14, 952, 26);
+
+  // フッター
+  g.fillStyle = "#4a3d2d"; g.fillRect(64, 1272, 952, 2);
+  g.fillStyle = "#a2947f"; g.font = '700 24px "Chakra Petch", sans-serif';
+  g.textBaseline = "middle";
+  g.fillText(res.daily ? "同じシードで誰でも挑戦できる" : "SEED を共有すれば同じ盤面で遊べる", 64, 1316);
+  g.textAlign = "right";
+  g.fillStyle = "#e3c68b"; g.font = '400 26px "Bungee", sans-serif';
+  g.fillText(res.seed, 1016, 1316);
+
+  cardCanvas = c;
+  c.toBlob(b => {
+    if (!b) return;
+    if (cardUrl) URL.revokeObjectURL(cardUrl);
+    cardUrl = URL.createObjectURL(b);
+    el("cardImg").src = cardUrl;
+  }, "image/png");
+}
+function resultText() {
+  const L = buildLabels();
+  return `DUST HORDE — WAVE ${lastRes.wave} 到達 / ${lastRes.timeStr} 生存 / ${lastRes.kills} kills\n`
+       + `BUILD: ${L.ws.map(w => w.t).join(", ")}\n`
+       + (lastRes.daily ? `DAILY ${lastRes.seed}` : `SEED ${lastRes.seed}`);
+}
+async function shareResult() {
+  const note = m => { el("shareNote").textContent = m; };
+  if (!cardCanvas || !lastRes) return;
+  const text = resultText();
+  const blob = await new Promise(r => cardCanvas.toBlob(r, "image/png"));
+  if (blob && navigator.canShare) {
+    const f = new File([blob], "dust-horde.png", { type: "image/png" });
+    if (navigator.canShare({ files: [f] })) {
+      try { await navigator.share({ files: [f], text }); return note("共有しました"); }
+      catch (err) { if (err && err.name === "AbortError") return note(""); }
+    }
+  }
+  if (blob && navigator.clipboard && window.ClipboardItem) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      return note("画像をコピーしました");
+    } catch (err) {}
+  }
+  try { await navigator.clipboard.writeText(text); return note("結果テキストをコピーしました"); }
+  catch (err) {}
+  note("画像を長押し（右クリック）で保存できます");
+}
+function refreshDailyNote() {
+  const d = save.daily, today = todaySeed();
+  el("dailyNote").textContent = (d && d.date === today)
+    ? `今日の記録 ${today} ─ WAVE ${d.wave} / ${d.time} / ${d.kills} kills`
+    : `今日の挑戦 ${today} ─ 未挑戦。湧き方も抽選も全員同じ`;
+}
+
 function gameOver() {
   over = true; running = false;
   const banked = Math.round(coins + kills * .12);
-  save.bank += banked; writeSave();
-  el("rWave").textContent = wave;
-  el("rTime").textContent = Math.floor(time / 60) + ":" + String(Math.floor(time % 60)).padStart(2, "0");
-  el("rKills").textContent = kills;
-  el("rBank").textContent = banked;
+  save.bank += banked;
+  const t = Math.floor(time);
+  const timeStr = Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
+  if (dailyMode) {
+    const rec = save.daily && save.daily.date === runSeed ? save.daily : null;
+    if (!rec || wave > rec.wave || (wave === rec.wave && kills > rec.kills)) {
+      save.daily = { date: runSeed, wave, kills, time: timeStr };
+    }
+  }
+  writeSave();
+  lastRes = { wave, timeStr, kills, banked, lv: P.lv, seed: runSeed, daily: dailyMode };
+  el("overEyebrow").textContent = dailyMode ? "Daily challenge" : "Overrun";
+  el("shareNote").textContent = "";
+  el("cardImg").removeAttribute("src");
+  buildCard(lastRes);
+  refreshDailyNote();
   el("overScreen").classList.add("on");
 }
 function togglePause() {
@@ -1215,8 +1469,8 @@ function togglePause() {
   paused = !paused;
   el("pauseScreen").classList.toggle("on", paused);
 }
-function start() {
-  resetGame();
+function start(seed, daily) {
+  resetGame(seed, daily);
   for (const id of ["startScreen", "overScreen", "pauseScreen", "shopScreen", "levelScreen", "talentScreen"]) {
     el(id).classList.remove("on");
   }
@@ -1225,8 +1479,10 @@ function start() {
   drawSlots();
   banner("WAVE 1");
 }
-el("startBtn").onclick = start;
-el("againBtn").onclick = start;
+el("startBtn").onclick = () => start(null, false);
+el("dailyBtn").onclick = () => start(todaySeed(), true);
+el("againBtn").onclick = () => start(dailyMode ? runSeed : null, dailyMode);
+el("shareBtn").onclick = shareResult;
 el("resumeBtn").onclick = togglePause;
 
 // =====================================================================
@@ -1244,6 +1500,7 @@ function frame(now) {
 }
 resetGame();
 drawSlots();
+refreshDailyNote();
 requestAnimationFrame(frame);
 addEventListener("blur", () => {
   if (running && !over && !paused) { paused = true; el("pauseScreen").classList.add("on"); }
@@ -1255,6 +1512,25 @@ window.__horde = {
   get weapons() { return P.weapons.map(w => w.id + ":" + w.lv).join(","); },
   get items() { return P.items.join(","); },
   get bank() { return save.bank; },
+  get seed() { return runSeed; },
+  // 自動テスト用：近くの脅威から離れる向きを返す
+  get avoid() {
+    let ax = 0, ay = 0;
+    for (const e of enemies) {
+      const dx = P.x - e.x, dy = P.y - e.y, d2 = dx * dx + dy * dy;
+      if (d2 > 240 * 240 || d2 === 0) continue;
+      const w = 1 / d2 * (e.kind === "boss" ? 9 : 1);
+      ax += dx * w; ay += dy * w;
+    }
+    for (const q of eshots) {
+      const dx = P.x - q.x, dy = P.y - q.y, d2 = dx * dx + dy * dy;
+      if (d2 > 150 * 150 || d2 === 0) continue;
+      ax += dx / d2 * .5; ay += dy / d2 * .5;
+    }
+    const m = Math.hypot(ax, ay) || 1;
+    return { x: ax / m, y: ay / m };
+  },
+  get daily() { return dailyMode; },
 };
 })();
 </script>
