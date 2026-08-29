@@ -1,0 +1,273 @@
+<title>チャンネルを一本持つ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --paper:#F1F2ED; --card:#FAFAF8;
+  --ink:#17211E; --ink-2:#4B5551; --ink-3:#7B847F;
+  --rule:#DCDFD6; --rule-soft:#E7E9E1;
+  --accent:#1F6F5C; --accent-soft:#E2EDE7;
+  --brass:#96780F; --brass-soft:#F0E9D2;
+  --alert:#A2333F; --alert-soft:#F3E2E2;
+  --shadow:0 1px 2px rgba(23,33,30,.05), 0 6px 18px rgba(23,33,30,.045);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1413; --card:#171E1C;
+    --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+    --rule:#2A3431; --rule-soft:#212A28;
+    --accent:#57B896; --accent-soft:#17322A;
+    --brass:#D3B061; --brass-soft:#2C2716;
+    --alert:#E2818A; --alert-soft:#331E20;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1413; --card:#171E1C;
+  --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+  --rule:#2A3431; --rule-soft:#212A28;
+  --accent:#57B896; --accent-soft:#17322A;
+  --brass:#D3B061; --brass-soft:#2C2716;
+  --alert:#E2818A; --alert-soft:#331E20;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+}
+
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:17px; line-height:1.9; font-feature-settings:"palt" 1; overflow-x:hidden;
+}
+.wrap{max-width:44rem;margin:0 auto;padding:0 20px 6rem;}
+@media (min-width:700px){ .wrap{padding:0 32px 8rem;} }
+
+.masthead{padding:3.2rem 0 2rem;border-bottom:1px solid var(--rule);}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 1rem;}
+h1{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:clamp(1.85rem,7.5vw,2.6rem);line-height:1.38;margin:0;text-wrap:balance;}
+.dek{color:var(--ink-2);font-size:.98rem;line-height:1.85;margin:1.1rem 0 0;}
+.dek strong{color:var(--ink);}
+.thesis{
+  font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;
+  font-size:1.04rem;line-height:1.82;color:var(--ink);
+  border-top:1px solid var(--accent);border-bottom:1px solid var(--accent);
+  padding:1.05rem 0;margin:1.5rem 0;text-wrap:balance;
+}
+.thesis em{font-style:normal;color:var(--accent);font-weight:700;}
+
+nav{display:flex;flex-wrap:wrap;gap:.4rem;margin:1.7rem 0 0;}
+nav a{font-size:.78rem;text-decoration:none;color:var(--ink-2);border:1px solid var(--rule);border-radius:100px;padding:.3rem .72rem;background:var(--card);}
+nav a:hover{border-color:var(--accent);color:var(--accent);}
+nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+section{padding:3rem 0 0;}
+.sec-head{display:flex;gap:.75rem;align-items:baseline;margin:0 0 .2rem;}
+.sec-num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.78rem;color:var(--accent);flex:0 0 auto;padding-top:.1rem;}
+h2{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:1.38rem;line-height:1.5;margin:0;text-wrap:balance;}
+.sec-note{font-size:.88rem;color:var(--ink-3);line-height:1.75;margin:.5rem 0 1.3rem;}
+h3{font-size:.98rem;font-weight:700;margin:2.1rem 0 .8rem;color:var(--ink);padding-left:.7rem;border-left:3px solid var(--accent);line-height:1.6;}
+p{margin:1rem 0;color:var(--ink-2);}
+strong{color:var(--ink);font-weight:700;}
+em{font-style:normal;color:var(--accent);font-weight:700;}
+a{color:var(--accent);}
+
+.calc{display:flex;flex-direction:column;margin:1rem 0;}
+.calc > div{display:flex;justify-content:space-between;gap:1rem;align-items:baseline;padding:.55rem 0;border-bottom:1px solid var(--rule-soft);font-size:.9rem;}
+.calc > div:last-child{border-bottom:0;}
+.calc .k{color:var(--ink-2);}
+.calc .v{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap;text-align:right;}
+.calc .v.hi{color:var(--accent);font-weight:500;}
+.calc .row-hi{background:var(--accent-soft);border-radius:6px;padding:.55rem .7rem;border-bottom:0;}
+
+.opt{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:1rem 1.05rem 1.1rem;margin:.8rem 0;box-shadow:var(--shadow);
+}
+.opt.pick{border-color:var(--accent);border-width:1.5px;}
+.opt.no{border-color:var(--alert);}
+.opt-top{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between;margin-bottom:.7rem;}
+.opt-name{font-weight:700;font-size:.99rem;line-height:1.5;flex:1;min-width:11rem;}
+.chip{font-size:.7rem;font-weight:700;letter-spacing:.05em;padding:.2rem .58rem;border-radius:100px;border:1px solid transparent;white-space:nowrap;}
+.chip.pick{background:var(--accent);color:var(--card);}
+.chip.alt{background:var(--brass-soft);color:var(--brass);border-color:var(--brass);}
+.chip.no{background:var(--alert-soft);color:var(--alert);border-color:var(--alert);}
+
+.fline{display:flex;flex-direction:column;gap:.15rem;padding:.55rem 0;border-top:1px solid var(--rule-soft);}
+.fline:first-of-type{border-top:0;padding-top:0;}
+.fline .k{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.67rem;letter-spacing:.09em;color:var(--ink-3);}
+.fline.ok .k{color:var(--accent);}
+.fline.bad .k{color:var(--alert);}
+.fline .v{font-size:.89rem;line-height:1.74;color:var(--ink-2);}
+.fline .v b{color:var(--ink);}
+@media (min-width:560px){
+  .fline{flex-direction:row;gap:.9rem;align-items:baseline;}
+  .fline .k{flex:0 0 3.9rem;}
+  .fline .v{flex:1;}
+}
+
+.step{display:flex;gap:.85rem;align-items:flex-start;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:.9rem 1rem;margin:.55rem 0;box-shadow:var(--shadow);}
+.step-n{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.7rem;color:var(--accent);
+  flex:0 0 auto;border:1px solid var(--accent);border-radius:50%;
+  width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;margin-top:.18rem;
+}
+.step-b{flex:1;font-size:.9rem;line-height:1.74;color:var(--ink-2);}
+.step-b b{color:var(--ink);display:block;margin-bottom:.1rem;}
+.step-b .when{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.72rem;color:var(--ink-3);display:block;margin-top:.3rem;}
+
+.warn{border-left:3px solid var(--alert);background:var(--alert-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.3rem 0;font-size:.89rem;line-height:1.78;color:var(--ink-2);}
+.warn b{color:var(--ink);}
+.callout{border-left:3px solid var(--brass);background:var(--brass-soft);padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.3rem 0;font-size:.89rem;line-height:1.78;color:var(--ink-2);}
+.callout b{color:var(--ink);}
+
+ul.plain{list-style:none;padding:0;margin:1rem 0;display:flex;flex-direction:column;gap:.7rem;}
+ul.plain li{font-size:.91rem;line-height:1.78;color:var(--ink-2);padding-left:1.1rem;position:relative;}
+ul.plain li::before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+.src{font-size:.8rem;line-height:1.8;color:var(--ink-3);}
+.src a{color:var(--ink-2);}
+footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-size:.78rem;line-height:1.8;color:var(--ink-3);}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">FAST / 実行計画</p>
+  <h1>チャンネルを<br>一本持つ</h1>
+  <p class="dek">FAST1本に絞ったので、最初の30日を具体化した。<strong>この事業がつまらなく見えるのは、在庫の話をしているうちだけ</strong>——実際の勝負は編成、つまり「何を、何時に流すか」にあります。そこはあなたの継続率設計そのものです。</p>
+
+  <div class="thesis">必要な規模が、これまでの案でいちばん小さい。<br>月50万円は <em>数千〜1万視聴者</em> で届く。</div>
+
+  <nav>
+    <a href="#econ">収益の実勢</a>
+    <a href="#stock">在庫の現実</a>
+    <a href="#concept">コンセプト候補</a>
+    <a href="#pick">選ぶならこれ</a>
+    <a href="#d30">最初の30日</a>
+    <a href="#risk">落とし穴</a>
+  </nav>
+</header>
+
+<section id="econ">
+  <div class="sec-head"><span class="sec-num">01</span><h2>収益の実勢</h2></div>
+  <p class="sec-note">この計画で最後まで未確認だった数字。FASTの収益構造は「視聴者数 × 視聴時間 × 広告在庫 × 充填率 × CPM − プラットフォーム取り分」で、業界で語られている実勢は次の通り。</p>
+
+  <div class="calc">
+    <div><span class="k">数千視聴者のニッチチャンネル</span><span class="v">月 4桁ドル前半</span></div>
+    <div><span class="k">同（円換算の目安）</span><span class="v hi">月 15〜45万円</span></div>
+    <div><span class="k">約5万視聴者の成長チャンネル</span><span class="v">月 5桁ドル半ば</span></div>
+    <div><span class="k">数十万視聴者の確立チャンネル</span><span class="v">月 6桁ドル前半〜半ば</span></div>
+    <div class="row-hi"><span class="k"><b>月50万円に必要な規模</b></span><span class="v hi">数千〜1万視聴者</span></div>
+  </div>
+
+  <p><strong>これがFASTを選ぶ最大の理由になりました。</strong>ショートドラマは制作費$140Kの世界、広告収益モデルは月2,200万再生が必要、B2Bは10〜17社の受注が必要でした。それに比べて<strong>「数千人が見ている状態」は、桁として現実的です。</strong></p>
+
+  <div class="warn"><b>ただし前提が1つ。</b>これは<b>チャンネルが配信に乗った後</b>の話です。Tier1（Pluto、Tubi、Samsung TV Plus、Roku）は公開応募窓口がなく、アグリゲータ経由か招待のみ。<b>ここを通れるかどうかが、事業の成否をほぼ決めます。</b>だから最初の30日は、コンテンツ制作ではなく<b>「通る提案を作る」</b>ことに全部使います。</div>
+</section>
+
+<section id="stock">
+  <div class="sec-head"><span class="sec-num">02</span><h2>在庫の現実</h2></div>
+  <p class="sec-note">「権利がクリアな在庫」がどれだけあるか。調べた結果、量は十分ある。ただし<b>クリアの意味が層で違う</b>のが要点。</p>
+
+  <div class="opt">
+    <div class="opt-top"><span class="opt-name">層1　米国連邦政府の制作物（NASA等）</span><span class="chip pick">最も安全</span></div>
+    <div class="fline ok"><span class="k">状態</span><span class="v">米国の連邦政府職員が職務上作成した著作物は、原則として著作権が発生しない。<b>第三者の実演も劇伴音楽も含まない素材が大量にある。</b></span></div>
+    <div class="fline ok"><span class="k">意味</span><span class="v"><b>権利確認のコストが実質ゼロ。</b>音は自分で付けるので、この層だけは「音楽が別権利」という最大の落とし穴を最初から回避できる。</span></div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-top"><span class="opt-name">層2　1930年公開の米国映画（2026年にPD入り）</span><span class="chip alt">認知度は最強</span></div>
+    <div class="fline ok"><span class="k">状態</span><span class="v">米国では1930年公開作品が2026年にパブリックドメイン入り。<b>『西部戦線異状なし』『嘆きの天使』『モロッコ』、マルクス兄弟『けだもの組合』、バスター・キートンの初トーキー、1930年のミッキーマウス短編、ベティ・ブープの初登場</b>など。</span></div>
+    <div class="fline bad"><span class="k">注意</span><span class="v"><b>映画本体がPDでも、劇中の楽曲は別の権利として生きていることがある。</b>1930年はトーキー黎明期で音楽の扱いが複雑。ここは作品ごとに確認が要る。</span></div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-top"><span class="opt-name">層3　Internet Archive / Prelinger</span><span class="chip alt">量は膨大</span></div>
+    <div class="fline ok"><span class="k">状態</span><span class="v">Moving Images に100万本以上。Prelinger Archives の産業映画・教育映画・広告フィルムには、用途を問わず使えるものが多数。</span></div>
+    <div class="fline bad"><span class="k">注意</span><span class="v"><b>アップロードされている＝権利がクリア、ではない。</b>1本ずつライセンス表示を確認する必要がある。</span></div>
+  </div>
+
+  <div class="callout"><b>設計上の簡略化が1つあります。</b>パブリックドメインの判定は国ごとに違うので、<b>配信地域を米国に限定すれば、米国の判定だけを見ればよくなる</b>。日本や欧州を同時に狙うと権利確認の手間が数倍になります。<b>最初は米国1国に絞るのが正解</b>です。</div>
+</section>
+
+<section id="concept">
+  <div class="sec-head"><span class="sec-num">03</span><h2>コンセプト候補</h2></div>
+  <p class="sec-note">通る提案の条件は、調べた限り3つ。<b>①ターゲットが一言で言える ②実際に動くフィードがある ③権利書類が揃っている</b>。①を満たす候補を、在庫の実在性ごと並べた。</p>
+
+  <div class="opt pick">
+    <div class="opt-top"><span class="opt-name">A　24時間、宇宙</span><span class="chip pick">本命</span></div>
+    <div class="fline ok"><span class="k">中身</span><span class="v">NASA等の映像を、ミッション別・天体別に編成し、自作の音楽と最小限のナレーションを載せて流し続ける。</span></div>
+    <div class="fline ok"><span class="k">強み</span><span class="v"><b>権利が完全にクリア</b>／素材が事実上無尽蔵／<b>アンビエント視聴＝1回の視聴時間が長い＝広告在庫が増える</b>／画質が良い／英語圏で「宇宙」は普遍的な訴求</span></div>
+    <div class="fline bad"><span class="k">弱み</span><span class="v">同種のYouTubeチャンネルは多い。<b>差は編成でしか出ない</b>——ここがあなたの土俵になるかどうかが分岐点。</span></div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-top"><span class="opt-name">B　24時間、1930年のコメディ</span><span class="chip alt">対抗</span></div>
+    <div class="fline ok"><span class="k">中身</span><span class="v">マルクス兄弟、キートン、初期ミッキー、ベティ・ブープ。<b>今年PD入りした「名前で分かる」作品群。</b></span></div>
+    <div class="fline ok"><span class="k">強み</span><span class="v">アグリゲータへの提案として<b>圧倒的に説明しやすい</b>。短尺が多くループ編成に向く。コメディは背景再生と相性が良い。</span></div>
+    <div class="fline bad"><span class="k">弱み</span><span class="v">楽曲の権利確認が必要。<b>同じことを考える事業者が今年は多い</b>（PD入り直後は競争が起きる）。</span></div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-top"><span class="opt-name">C　24時間、1950年代アメリカの暮らし</span><span class="chip alt">独自性は最高</span></div>
+    <div class="fline ok"><span class="k">中身</span><span class="v">Prelingerの産業・教育・広告フィルムを「通勤」「台所」「学校」などテーマ別に編成。ノスタルジーと奇妙さ。</span></div>
+    <div class="fline bad"><span class="k">弱み</span><span class="v">視聴者層が薄い。<b>一言で説明はできるが、規模が出るか読めない。</b></span></div>
+  </div>
+
+  <div class="opt no">
+    <div class="opt-top"><span class="opt-name">D　スポーツ系（アーカイブ・ハイライト）</span><span class="chip no">やらない</span></div>
+    <div class="fline bad"><span class="k">理由</span><span class="v">あなたの土地勘が最も効く領域だが、<b>スポーツ映像の権利は例外なく高額かつ厳格</b>。副業の予算で買える在庫がない。</span></div>
+  </div>
+</section>
+
+<section id="pick">
+  <div class="sec-head"><span class="sec-num">04</span><h2>選ぶならこれ</h2></div>
+
+  <p><strong>A（24時間、宇宙）を本命に、Bを保険として同時に提案します。</strong>アグリゲータとの商談は3〜6ヶ月かかるので、1本だけ出して断られると半年が消えます。<strong>性格の違う2案を同時に出すのが、時間という最大の制約への対処です。</strong></p>
+
+  <p>Aを推す理由は、権利の安全性だけではありません。<strong>この事業で唯一あなたの経験が直接効くのが編成だから</strong>です。何時に何を流せば見続けてもらえるか——朝は静かな地球周回、夜は打ち上げと着陸、深夜は無音に近い長回し。<strong>これは視聴維持率の設計であって、あなたがCSでやってきたことと同じ思考です。</strong>素材の希少性で勝てない領域だからこそ、編成で差がつきます。</p>
+
+  <div class="callout"><b>つまらなく感じた理由の答え合わせ。</b>FASTは「どの映像を集めるか」の話をしている限り、ただの倉庫番です。<b>面白くなるのは、視聴者が寝落ちするまでの2時間をどう設計するかを考え始めてから。</b>そこまで行けるかどうかで、この事業が続くかが決まります。</div>
+</section>
+
+<section id="d30">
+  <div class="sec-head"><span class="sec-num">05</span><h2>最初の30日</h2></div>
+  <p class="sec-note">作るのはコンテンツではなく、<b>「通る提案」</b>。順番を守ること。</p>
+
+  <div class="step"><span class="step-n">1</span><div class="step-b"><b>在庫を30本、権利ごと確定させる</b>Aのコンセプトで、使える素材を30本選び、1本ずつ出典と権利状態を記録した一覧を作る。ここは私が手伝えます。<span class="when">Day 1–7</span></div></div>
+  <div class="step"><span class="step-n">2</span><div class="step-b"><b>2時間分の編成を組む</b>全部を流すのではなく、<b>2時間のブロックを1つ完成させる</b>。何時に何を置くか、つなぎをどうするか。これが商談で見せる「動くもの」の中身になる。<span class="when">Day 8–14</span></div></div>
+  <div class="step"><span class="step-n">3</span><div class="step-b"><b>実際に流れるフィードを立てる</b>HLSで24時間ループ、SCTE-35の広告マーカー、EPG（番組表）。<b>「動いているフィードがある」ことが商談の前提条件</b>なので、ここは省略できない。技術的には外注できる範囲。<span class="when">Day 15–24</span></div></div>
+  <div class="step"><span class="step-n">4</span><div class="step-b"><b>アグリゲータに接触する</b>Tier1に直接応募する窓口はないので、配信を仲介する事業者から入る。1社ずつではなく<b>複数社に同時に当てる</b>——返信までの時間が読めないため。<span class="when">Day 25–30</span></div></div>
+
+  <div class="warn"><b>やってはいけない順番。</b>「まず素材を1,000本集める」から始めると、確実に頓挫します。<b>30本と2時間分の編成があれば商談はできる</b>ので、通ってから広げること。逆に、フィードが動いていない状態で商談に行くのも無駄足になります。</div>
+</section>
+
+<section id="risk">
+  <div class="sec-head"><span class="sec-num">06</span><h2>落とし穴</h2></div>
+  <ul class="plain">
+    <li><strong>権利処理を誤ると一発で終わる。</strong>配信停止では済まず、事業として再起できなくなる類型です。<strong>1本ずつ、出典と根拠を記録に残す</strong>——後から証明できる状態が本体。</li>
+    <li><strong>アプリに手を出さない。</strong>チャンネルの集客のために自分でアプリを作って伸ばし始めると、その瞬間に現職との競業の話になります。<strong>ここが唯一の一線です。</strong></li>
+    <li><strong>広告で伸ばせない。</strong>あなたの資金力がほぼ効かない事業なので、金で解決したくなったときが危険信号。使いどころは<b>フィード構築の外注と、素材の権利確認の外注</b>の2つに限られます。</li>
+    <li><strong>3〜6ヶ月、何も起きない期間がある。</strong>商談待ちの間に熱が切れるのが最大のリスク。<strong>その期間は編成の精度を上げることに使う</strong>——通ったあとの立ち上がりが速くなります。</li>
+  </ul>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">§</span><h2>参照した情報</h2></div>
+  <p class="src">
+    <a href="https://www.ottengine.com/blog/how-much-can-fast-channel-earn-2026">How Much Can a FAST Channel Earn in 2026?／OTTEngine</a>　·
+    <a href="https://www.advanced-television.com/2024/10/23/fast-faqs-launching-a-fast-channel/">FAST FAQs: Launching a FAST channel</a>　·
+    <a href="https://www.moltencloud.com/blog-article/delivering-content-to-samsung-tv-plus-avails-specs-workflow">Samsung TV Plus Delivery Guide</a>　·
+    <a href="https://www.indiewire.com/features/general/whats-entering-public-domain-2026-1235169083/">What's Entering the Public Domain in 2026／IndieWire</a>　·
+    <a href="https://www.filmbuffonline.com/FBOLNewsreel/wordpress/2026/01/01/films-going-into-the-public-domain-in-2026/">Films Going Into The Public Domain in 2026</a>　·
+    <a href="https://archive.org/details/publicmovies212">Public Domain Movies／Internet Archive</a>
+  </p>
+</section>
+
+<footer>
+  この事業を選んだ理由は「いちばんワクワクするから」ではなく、<b>週15時間・在職中・競業回避という制約を全部満たす唯一の案だったから</b>です。そのぶん、面白さは編成で自分から作りにいく必要があります。30日走って手応えがなければ、保留にしてある③に移ってもいい——<b>この判断は取り消せます。</b>
+</footer>
+
+</div>
