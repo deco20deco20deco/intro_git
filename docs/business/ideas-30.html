@@ -1,0 +1,471 @@
+<title>自動で回る30案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --paper:#F1F2ED; --card:#FAFAF8;
+  --ink:#17211E; --ink-2:#4B5551; --ink-3:#7B847F;
+  --rule:#DCDFD6; --rule-soft:#E7E9E1;
+  --accent:#1F6F5C; --accent-soft:#E2EDE7;
+  --brass:#96780F; --brass-soft:#F0E9D2;
+  --alert:#A2333F; --alert-soft:#F3E2E2;
+  --shadow:0 1px 2px rgba(23,33,30,.05), 0 6px 18px rgba(23,33,30,.045);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1413; --card:#171E1C;
+    --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+    --rule:#2A3431; --rule-soft:#212A28;
+    --accent:#57B896; --accent-soft:#17322A;
+    --brass:#D3B061; --brass-soft:#2C2716;
+    --alert:#E2818A; --alert-soft:#331E20;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1413; --card:#171E1C;
+  --ink:#E9EBE5; --ink-2:#AFB6B1; --ink-3:#7D857F;
+  --rule:#2A3431; --rule-soft:#212A28;
+  --accent:#57B896; --accent-soft:#17322A;
+  --brass:#D3B061; --brass-soft:#2C2716;
+  --alert:#E2818A; --alert-soft:#331E20;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+}
+
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:17px; line-height:1.9; font-feature-settings:"palt" 1; overflow-x:hidden;
+}
+.wrap{max-width:44rem;margin:0 auto;padding:0 20px 6rem;}
+@media (min-width:700px){ .wrap{padding:0 32px 8rem;} }
+
+.masthead{padding:3.2rem 0 2rem;border-bottom:1px solid var(--rule);}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 1rem;}
+h1{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:clamp(1.85rem,7.5vw,2.6rem);line-height:1.38;margin:0;text-wrap:balance;}
+.dek{color:var(--ink-2);font-size:.98rem;line-height:1.85;margin:1.1rem 0 0;}
+.dek strong{color:var(--ink);}
+.formula{
+  font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;
+  font-size:1.02rem;line-height:1.8;color:var(--ink);
+  border-top:1px solid var(--accent);border-bottom:1px solid var(--accent);
+  padding:1rem 0;margin:1.5rem 0 0;text-wrap:balance;
+}
+.warn{
+  border-left:3px solid var(--alert);background:var(--alert-soft);
+  padding:.9rem 1rem;border-radius:0 8px 8px 0;margin:1.5rem 0 0;
+  font-size:.89rem;line-height:1.78;color:var(--ink-2);
+}
+.warn b{color:var(--ink);}
+
+nav{display:flex;flex-wrap:wrap;gap:.4rem;margin:1.8rem 0 0;}
+nav a{font-size:.78rem;text-decoration:none;color:var(--ink-2);border:1px solid var(--rule);border-radius:100px;padding:.3rem .72rem;background:var(--card);}
+nav a:hover{border-color:var(--accent);color:var(--accent);}
+nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+section{padding:3rem 0 0;}
+.sec-head{display:flex;gap:.75rem;align-items:baseline;margin:0 0 .2rem;}
+.sec-num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.78rem;color:var(--accent);flex:0 0 auto;padding-top:.1rem;}
+h2{font-family:"Zen Old Mincho","Hiragino Mincho ProN",serif;font-weight:700;font-size:1.38rem;line-height:1.5;margin:0;text-wrap:balance;}
+.sec-note{font-size:.87rem;color:var(--ink-3);line-height:1.75;margin:.5rem 0 1.4rem;}
+p{margin:1rem 0;color:var(--ink-2);}
+strong{color:var(--ink);font-weight:700;}
+em{font-style:normal;color:var(--accent);font-weight:700;}
+
+/* ---- idea ---- */
+.idea{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:1rem 1.05rem 1.1rem;margin:.7rem 0;box-shadow:var(--shadow);
+}
+.idea.star{border-color:var(--accent);border-width:1.5px;}
+.idea-top{display:flex;gap:.7rem;align-items:baseline;}
+.idea-n{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.74rem;
+  color:var(--accent);flex:0 0 1.7rem;font-variant-numeric:tabular-nums;padding-top:.15rem;
+}
+.idea-title{font-weight:700;font-size:1rem;line-height:1.55;flex:1;}
+.idea-eq{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.73rem;line-height:1.7;color:var(--ink-3);
+  margin:.35rem 0 .5rem;padding-left:2.4rem;letter-spacing:.01em;
+}
+.idea-body{font-size:.9rem;line-height:1.76;color:var(--ink-2);padding-left:2.4rem;}
+.idea-body b{color:var(--ink);}
+.idea-meta{display:flex;flex-wrap:wrap;gap:.35rem;margin:.65rem 0 0;padding-left:2.4rem;}
+.tag{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.66rem;letter-spacing:.05em;padding:.16rem .5rem;border-radius:4px;
+  border:1px solid var(--rule);color:var(--ink-3);white-space:nowrap;
+}
+.tag.auto{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+.tag.half{border-color:var(--brass);color:var(--brass);background:var(--brass-soft);}
+.tag.rev{border-color:var(--rule);color:var(--ink-2);}
+.tag.risk{border-color:var(--alert);color:var(--alert);background:var(--alert-soft);}
+@media (max-width:480px){
+  .idea-eq,.idea-body,.idea-meta{padding-left:0;}
+}
+
+/* ---- keyword grid ---- */
+.kw{display:flex;flex-direction:column;gap:1.1rem;margin:1.2rem 0;}
+.kw-col{border-top:1px solid var(--accent);padding-top:.7rem;}
+.kw-col h4{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.7rem;letter-spacing:.1em;color:var(--accent);margin:0 0 .55rem;font-weight:500;
+}
+.kw-list{display:flex;flex-wrap:wrap;gap:.32rem;}
+.kw-list span{
+  font-size:.8rem;padding:.22rem .55rem;border-radius:5px;
+  background:var(--card);border:1px solid var(--rule);color:var(--ink-2);
+}
+@media (min-width:640px){ .kw{display:grid;grid-template-columns:1fr 1fr;gap:1.3rem;} }
+
+/* ---- shortlist ---- */
+.pickrow{
+  display:flex;flex-direction:column;gap:.3rem;padding:.9rem 0;border-top:1px solid var(--rule);
+}
+.pickrow:last-of-type{border-bottom:1px solid var(--rule);}
+.pickrow-top{display:flex;gap:.7rem;align-items:baseline;}
+.pickrow-rank{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.78rem;color:var(--accent);flex:0 0 2.6rem;}
+.pickrow-name{font-weight:700;font-size:.96rem;line-height:1.55;}
+.pickrow-why{font-size:.87rem;line-height:1.75;color:var(--ink-2);padding-left:3.3rem;}
+@media (max-width:480px){ .pickrow-why{padding-left:0;} }
+
+ul.plain{list-style:none;padding:0;margin:1rem 0;display:flex;flex-direction:column;gap:.7rem;}
+ul.plain li{font-size:.91rem;line-height:1.78;color:var(--ink-2);padding-left:1.1rem;position:relative;}
+ul.plain li::before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-size:.78rem;line-height:1.8;color:var(--ink-3);}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">アイデア棚卸し / 30案</p>
+  <h1>自動で回る30案</h1>
+  <p class="dek">「Claudeでコンテンツを大量に作って勝手に回す」という視点で、掛け合わせを30通り並べたもの。<strong>営業で取ってくる型は1つも入れていない。</strong></p>
+
+  <div class="formula">イノベーション＝既存 × 既存。<br>だから軸は3つ持つ：<em>持っている資産</em> × <em>AIが安く量産できること</em> × <em>放っておいても人が来る場所</em>。</div>
+
+  <div class="warn"><b>先に前提を1つ。</b>「AIで記事を大量生成して放置」は現在ほぼ機能しない。Googleはスケーラブルなコンテンツ悪用をポリシーで明確に対象化しており、文章そのものはコモディティ化した。<b>生き残るのは、生成物が「文章」ではなく「誰も整形していないデータ ＋ 更新され続けること」になっている型。</b>以下30案はその軸で振ってある。</div>
+
+  <nav>
+    <a href="#c1">スポーツ×自動生成</a>
+    <a href="#c2">マーケ資産×公開データ</a>
+    <a href="#c3">監視・差分検知</a>
+    <a href="#c4">変換・下訳</a>
+    <a href="#c5">ローカル・生活</a>
+    <a href="#c6">尖った実験</a>
+    <a href="#kw">キーワード表</a>
+    <a href="#pick">この中から5つ</a>
+  </nav>
+</header>
+
+<section id="c1">
+  <div class="sec-head"><span class="sec-num">Ⅰ</span><h2>スポーツ × 自動生成</h2></div>
+  <p class="sec-note">競技団体の情報は「PDFで公開されているが検索できない」状態が異常に多い。この非効率がそのまま在庫になる。</p>
+
+  <div class="idea star">
+    <div class="idea-top"><span class="idea-n">01</span><span class="idea-title">全国アリーナ・スタジアム観戦ガイド</span></div>
+    <div class="idea-eq">会場データ × 座席/アクセス/周辺 × ページ自動生成</div>
+    <div class="idea-body">全国の会場 × 競技 × 座席ブロックで数千ページ。「〇〇アリーナ 2階席 見え方」は毎試合日に検索される割に、公式は書かない。<b>在庫が最初から大きい</b>。</div>
+    <div class="idea-meta"><span class="tag auto">ほぼ自走</span><span class="tag rev">アフィリ・会場広告</span></div>
+  </div>
+
+  <div class="idea star">
+    <div class="idea-top"><span class="idea-n">02</span><span class="idea-title">育成年代の大会結果データベース</span></div>
+    <div class="idea-eq">連盟のPDF結果 × 抽出構造化 × 選手名で引ける形</div>
+    <div class="idea-body">中高生の大会結果は各連盟がPDFで出して終わり。<b>選手名で検索できない</b>。親・指導者・進路担当が探している。名前で引ける形にした瞬間に独占できる。</div>
+    <div class="idea-meta"><span class="tag auto">ほぼ自走</span><span class="tag rev">スクール送客・用具</span><span class="tag risk">未成年の個人情報</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">03</span><span class="idea-title">地域クラブ向け 試合レポート自動配信</span></div>
+    <div class="idea-eq">スコアデータ × 記事生成 × クラブサイトへAPI配信</div>
+    <div class="idea-body">クラブには記事を書く人手がない。試合ごとにレポートが自動で載る。<b>納品が完全自動のB2B</b>で、月1万円 × 多数。</div>
+    <div class="idea-meta"><span class="tag half">半自走</span><span class="tag rev">クラブ月額</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">04</span><span class="idea-title">ニッチ競技の海外ニュース日本語版</span></div>
+    <div class="idea-eq">海外一次情報 × 翻訳要約 × 毎日配信</div>
+    <div class="idea-body">競技人口が少ない種目ほど日本語情報が枯れている＝独占が容易。英語力とスポーツの掛け合わせが直接効く数少ない案。</div>
+    <div class="idea-meta"><span class="tag auto">ほぼ自走</span><span class="tag rev">会員・用具アフィリ</span><span class="tag risk">著作権の線引き</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">05</span><span class="idea-title">部活動 地域移行の受け皿クラブ検索</span></div>
+    <div class="idea-eq">自治体公表資料 × 構造化 × 地域×競技で検索</div>
+    <div class="idea-body">政策で需要が強制的に立ち上がっている領域。情報は自治体ごとにバラバラで、横断で見られる場所がない。</div>
+    <div class="idea-meta"><span class="tag half">半自走</span><span class="tag rev">掲載課金・自治体レポート</span></div>
+  </div>
+</section>
+
+<section id="c2">
+  <div class="sec-head"><span class="sec-num">Ⅱ</span><h2>マーケ資産 × 公開データ</h2></div>
+  <p class="sec-note">MMM・CRMの実務経験が「何の数字に価値があるか分かる」という形で効く領域。作るのはコンテンツではなくデータセット。</p>
+
+  <div class="idea star">
+    <div class="idea-top"><span class="idea-n">06</span><span class="idea-title">上場企業の広告宣伝費データベース</span></div>
+    <div class="idea-eq">EDINET API × 有報から費目抽出 × 業界別時系列</div>
+    <div class="idea-body">広告費・販促費は有報に載っているのに、<b>業界横断で時系列に整形した場所が事実上ない</b>。代理店・事業会社のマーケ担当が予算根拠に使う数字。あなたの専門と最も近い案。</div>
+    <div class="idea-meta"><span class="tag auto">ほぼ自走</span><span class="tag rev">月額・レポート販売</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">07</span><span class="idea-title">業種別 広告クリエイティブ図鑑</span></div>
+    <div class="idea-eq">広告ライブラリ × 分類タグ付け × 業種別に陳列</div>
+    <div class="idea-body">「今この業界で実際に出ている広告」を業種別に並べ、訴求軸を分類する。制作側が毎回ゼロから探している作業。</div>
+    <div class="idea-meta"><span class="tag half">半自走</span><span class="tag rev">有料会員</span><span class="tag risk">各社の利用規約要確認</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">08</span><span class="idea-title">四半期更新のベンチマーク白書</span></div>
+    <div class="idea-eq">公開IR ＋ 匿名アンケート × 集計 × 定期更新</div>
+    <div class="idea-body">数字が更新されるだけで新しいコンテンツになる型。<b>白書はリード獲得装置としても機能する</b>ので、他案の入口にも転用できる。</div>
+    <div class="idea-meta"><span class="tag half">半自走</span><span class="tag rev">DL課金・スポンサー</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">09</span><span class="idea-title">LP自動診断ツール</span></div>
+    <div class="idea-eq">URL入力 × チェックリスト評価 × スコアとレポート出力</div>
+    <div class="idea-body">無料診断→有料の改善案。診断ロジックにあなたの実務知が入る。<b>ツール自体が営業をする</b>ので、営業したくないという要件に合う。</div>
+    <div class="idea-meta"><span class="tag auto">ほぼ自走</span><span class="tag rev">フリーミアム</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">10</span><span class="idea-title">MMMの教材と計算テンプレート</span></div>
+    <div class="idea-eq">公開手法 × 実データ演習 × Notebook/動画で販売</div>
+    <div class="idea-body">在庫ゼロ・原価ゼロ・作れる人がほぼいない。<b>前職の資産には一切触れず、公開手法だけで組む</b>ことが絶対条件。</div>
+    <div class="idea-meta"><span class="tag auto">売り切り自走</span><span class="tag rev">教材販売</span><span class="tag risk">前職との線引き</span></div>
+  </div>
+</section>
+
+<section id="c3">
+  <div class="sec-head"><span class="sec-num">Ⅲ</span><h2>監視・差分検知</h2></div>
+  <p class="sec-note">「勝手に回る」の本命。人間が毎日見に行けない量のページを毎日見に行き、変わったところだけ届ける。生成AIより前からある型だが、要約と分類が安くなったことで初めて個人でも成立するようになった。</p>
+
+  <div class="idea star">
+    <div class="idea-top"><span class="idea-n">11</span><span class="idea-title">補助金・助成金の差分監視</span></div>
+    <div class="idea-eq">全国の自治体/省庁サイト × 毎日クロール × 業種別に通知</div>
+    <div class="idea-body">自治体は1,700以上あり、人力では絶対に追えない。<b>取りこぼしが直接お金の損失になる</b>ので課金しやすい。顧客は士業・中小企業・支援機関。</div>
+    <div class="idea-meta"><span class="tag auto">完全自走</span><span class="tag rev">月額課金</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">12</span><span class="idea-title">競合サイト変更監視</span></div>
+    <div class="idea-eq">価格/採用/プレスの各ページ × 差分検知 × 要約してSlack通知</div>
+    <div class="idea-body">「競合が値上げした」「採用職種が増えた＝新規事業の兆候」を自動で拾う。差分に意味づけする部分だけがAIの仕事。</div>
+    <div class="idea-meta"><span class="tag auto">完全自走</span><span class="tag rev">月額課金</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">13</span><span class="idea-title">入札・調達情報の条件配信</span></div>
+    <div class="idea-eq">官公庁の入札公告 × 条件フィルタ × 通知</div>
+    <div class="idea-body">公告は公開されているが、探す形式になっていない。条件に合うものだけを届ける。</div>
+    <div class="idea-meta"><span class="tag auto">完全自走</span><span class="tag rev">月額課金</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">14</span><span class="idea-title">法令・ガイドライン改定の要約通知</span></div>
+    <div class="idea-eq">官報/パブコメ/省庁通知 × 要約 × 業種別配信</div>
+    <div class="idea-body">「うちの業界に関係あるか」の判定こそがAIの仕事。<b>誤りが許されない領域なので、原文リンクを必ず併記する設計にすること。</b></div>
+    <div class="idea-meta"><span class="tag auto">完全自走</span><span class="tag rev">月額課金</span><span class="tag risk">誤要約の責任</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">15</span><span class="idea-title">採用市況モニター</span></div>
+    <div class="idea-eq">求人票の増減と提示年収 × 職種別集計 × 月次レポート</div>
+    <div class="idea-body">求人票は世の中で最も正直な経営データ。職種別の年収相場と募集量の推移は、人事も投資家も欲しがる。</div>
+    <div class="idea-meta"><span class="tag auto">ほぼ自走</span><span class="tag rev">レポート販売</span><span class="tag risk">各媒体の規約</span></div>
+  </div>
+</section>
+
+<section id="c4">
+  <div class="sec-head"><span class="sec-num">Ⅳ</span><h2>変換・下訳</h2></div>
+  <p class="sec-note">人がやると面倒なだけで価値が出ない作業。単価は低いが、需要が枯れず、成果物の良し悪しが即座に分かるので売りやすい。</p>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">16</span><span class="idea-title">業界特化のPDF帳票 → 構造化データ</span></div>
+    <div class="idea-eq">紙前提の帳票 × 抽出 × CSV/API化</div>
+    <div class="idea-body">汎用OCRは既にあるので、<b>1業界に絞った項目定義</b>だけが差になる（建設の見積、医療の検査値、物流の運送状など）。</div>
+    <div class="idea-meta"><span class="tag half">半自走</span><span class="tag rev">従量・月額</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">17</span><span class="idea-title">商談メモ → CRM入力 ＋ 次アクション</span></div>
+    <div class="idea-eq">音声/メモ × 構造化 × CRMへ書き戻し</div>
+    <div class="idea-body">営業が入力を嫌うのは普遍で、CRMが死ぬ最大の原因。あなたのMA/CRM実務がそのまま設計に効く。</div>
+    <div class="idea-meta"><span class="tag half">半自走</span><span class="tag rev">席課金</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">18</span><span class="idea-title">英語の規制・技術文書 → 社内向け日本語要約</span></div>
+    <div class="idea-eq">海外一次資料 × 要約 × 定期配信</div>
+    <div class="idea-body">海外規制の変更を追わないといけないが専任を置けない中堅企業向け。英語力の掛け合わせ。</div>
+    <div class="idea-meta"><span class="tag auto">ほぼ自走</span><span class="tag rev">月額課金</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">19</span><span class="idea-title">求人票リライト</span></div>
+    <div class="idea-eq">事実情報 × 訴求設計 × 媒体別に自動生成</div>
+    <div class="idea-body">同じ求人を媒体ごとに書き分けるのは完全に手作業。採用広報の外注費は高いので単価が取れる。</div>
+    <div class="idea-meta"><span class="tag half">半自走</span><span class="tag rev">従量課金</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">20</span><span class="idea-title">アンケート自由記述 → 分類と示唆</span></div>
+    <div class="idea-eq">自由記述 × 分類 × 打ち手の提案</div>
+    <div class="idea-body">CS・マーケの定番作業で、いま人力でやられている。<b>「分類して終わり」ではなく打ち手まで出す</b>のがあなたの差分。</div>
+    <div class="idea-meta"><span class="tag half">半自走</span><span class="tag rev">従量・月額</span></div>
+  </div>
+</section>
+
+<section id="c5">
+  <div class="sec-head"><span class="sec-num">Ⅴ</span><h2>ローカル・生活</h2></div>
+  <p class="sec-note">単価は上がらないが、検索需要が安定していて、自分が当事者なので検証が速い。船橋を「商圏」ではなく「最初のテストベッド」として使う型。</p>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">21</span><span class="idea-title">保育園・学童・病児保育の空き監視</span></div>
+    <div class="idea-eq">自治体の公表ページ × 毎日差分 × 通知</div>
+    <div class="idea-body">親が毎日手で見に行っている。切実さが極めて高く、口コミが速い。</div>
+    <div class="idea-meta"><span class="tag auto">完全自走</span><span class="tag rev">個人課金・広告</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">22</span><span class="idea-title">習い事・スポーツ教室の横断検索</span></div>
+    <div class="idea-eq">教室情報 × 構造化 × 地域×年齢×競技で検索</div>
+    <div class="idea-body">個人経営の教室はサイトすら持たないことが多く、横断で探す場所がない。スポーツの知見が効く。</div>
+    <div class="idea-meta"><span class="tag half">半自走</span><span class="tag rev">掲載課金・送客</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">23</span><span class="idea-title">自治体の子育て支援制度 自動比較</span></div>
+    <div class="idea-eq">各自治体の制度 × 構造化 × 市区町村で並べて比較</div>
+    <div class="idea-body">引っ越し先の検討で必ず調べられるのに、横断比較が存在しない。不動産系との相性が良い。</div>
+    <div class="idea-meta"><span class="tag auto">ほぼ自走</span><span class="tag rev">不動産送客・広告</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">24</span><span class="idea-title">週末イベントの自動集約ニュースレター</span></div>
+    <div class="idea-eq">地域の各種告知 × 集約 × 毎週金曜に配信</div>
+    <div class="idea-body">一度作れば毎週勝手に出る。<b>ローカル広告の受け皿</b>になるまで育てば、単価は低くても手離れは最高。</div>
+    <div class="idea-meta"><span class="tag auto">完全自走</span><span class="tag rev">ローカル広告</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">25</span><span class="idea-title">住所を入れると出る 自分用の防災ページ</span></div>
+    <div class="idea-eq">ハザード/浸水/避難所データ × 住所で結合 × 個別ページ生成</div>
+    <div class="idea-body">データは全部公開されているのに、住所単位で1枚にまとまっていない。行動変容の設計という強みが素直に乗る。</div>
+    <div class="idea-meta"><span class="tag auto">ほぼ自走</span><span class="tag rev">広告・自治体</span></div>
+  </div>
+</section>
+
+<section id="c6">
+  <div class="sec-head"><span class="sec-num">Ⅵ</span><h2>尖った実験</h2></div>
+  <p class="sec-note">当たれば大きいが、前提が崩れやすい枠。小さく試して即やめる用。</p>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">26</span><span class="idea-title">業界用語辞典のプログラマティック生成</span></div>
+    <div class="idea-eq">用語 × 業種 × 実例 で組み合わせページ量産</div>
+    <div class="idea-body">古典的な型で、<b>今は最もポリシー違反判定を受けやすい</b>。やるなら実データや計算機能を必ず載せて、文章だけのページにしないこと。</div>
+    <div class="idea-meta"><span class="tag auto">自走</span><span class="tag risk">検索ポリシー</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">27</span><span class="idea-title">自動更新される比較サイト</span></div>
+    <div class="idea-eq">各社の公開価格 × 毎日取得 × 比較表を自動更新</div>
+    <div class="idea-body">比較サイトが腐る理由は「更新されないこと」だけ。<b>更新の自動化そのものが差別化になる</b>という珍しい構造。</div>
+    <div class="idea-meta"><span class="tag auto">ほぼ自走</span><span class="tag rev">アフィリ・掲載</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">28</span><span class="idea-title">業種別のLINE配信シナリオ集</span></div>
+    <div class="idea-eq">CRM設計知 × 業種テンプレ化 × 売り切り販売</div>
+    <div class="idea-body">「1業種1テンプレ」で30業種作る。あなたの行動設計の知見を、納品物ではなく<b>在庫</b>に変える型。</div>
+    <div class="idea-meta"><span class="tag auto">売り切り自走</span><span class="tag rev">テンプレ販売</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">29</span><span class="idea-title">中小向けAIエージェント運用の「型」販売</span></div>
+    <div class="idea-eq">定型業務 × エージェント設定 × 月額で面倒を見る</div>
+    <div class="idea-body">需要は今いちばん立っているが、<b>結局は人力の伴走に戻りやすい</b>。型を売る形にできるかが分岐点。</div>
+    <div class="idea-meta"><span class="tag half">要人力</span><span class="tag rev">月額</span></div>
+  </div>
+
+  <div class="idea">
+    <div class="idea-top"><span class="idea-n">30</span><span class="idea-title">整形済みデータセットの販売</span></div>
+    <div class="idea-eq">公開データ × 整形・結合 × マーケットプレイスで販売</div>
+    <div class="idea-body">上のどの案を作っても<b>副産物としてデータが溜まる</b>。それ自体を売る。1案の失敗が次の案の原材料になる構造を作れる。</div>
+    <div class="idea-meta"><span class="tag auto">完全自走</span><span class="tag rev">データ販売</span></div>
+  </div>
+</section>
+
+<section id="kw">
+  <div class="sec-head"><span class="sec-num">＋</span><h2>キーワード表：自分で掛け合わせる用</h2></div>
+  <p class="sec-note">30案は下の部品の組み合わせでできている。左から1つずつ引いて掛けると、まだ出していない案が作れる。</p>
+
+  <div class="kw">
+    <div class="kw-col">
+      <h4>A. 持っている資産</h4>
+      <div class="kw-list"><span>MMM・効果測定</span><span>MA/CRM設計</span><span>継続率・LTV</span><span>データ基盤</span><span>スポーツ実務</span><span>スポーツマネジメント修士</span><span>英語・海外業務</span><span>0→1の立ち上げ</span><span>法人営業</span><span>船橋在住</span></div>
+    </div>
+    <div class="kw-col">
+      <h4>B. AIが安く量産できること</h4>
+      <div class="kw-list"><span>非構造→構造化</span><span>PDF/画像からの抽出</span><span>要約</span><span>翻訳</span><span>分類・タグ付け</span><span>差分の意味づけ</span><span>命名・言い換え</span><span>個別化</span><span>コード生成</span><span>異常検知の下読み</span></div>
+    </div>
+    <div class="kw-col">
+      <h4>C. 放っておいても人が来る場所</h4>
+      <div class="kw-list"><span>固有名詞の検索</span><span>「地域＋条件」の検索</span><span>毎日見に行く習慣</span><span>締切のある手続き</span><span>比較したい瞬間</span><span>業界のSlack/コミュニティ</span><span>他人のサイトに埋め込む</span><span>API提供</span><span>マーケットプレイス</span><span>ニュースレター</span></div>
+    </div>
+    <div class="kw-col">
+      <h4>D. お金の取り方</h4>
+      <div class="kw-list"><span>月額（通知系）</span><span>従量（変換系）</span><span>掲載課金</span><span>送客・アフィリ</span><span>データ販売</span><span>教材売り切り</span><span>フリーミアム</span><span>スポンサー</span><span>API課金</span><span>自治体・団体予算</span></div>
+    </div>
+  </div>
+
+  <div class="warn"><b>掛け合わせのコツ。</b>Cを最初に決めること。AとBだけで考えると「作れるけど誰も来ないもの」が必ずできる。<b>「もう人が集まっている場所」から逆算する</b>と、30案のうち生き残る側に入る。</div>
+</section>
+
+<section id="pick">
+  <div class="sec-head"><span class="sec-num">▶</span><h2>この30の中から選ぶなら5つ</h2></div>
+  <p class="sec-note">評価軸は4つ。①誰も整形していないデータがあるか（＝真似されにくいか）②検索か通知に自然な需要があるか③生成物が資産として積み上がるか④法務・規約で死なないか。</p>
+
+  <div class="pickrow">
+    <div class="pickrow-top"><span class="pickrow-rank">1位</span><span class="pickrow-name">06　上場企業の広告宣伝費データベース</span></div>
+    <div class="pickrow-why">データ源が公的で安定（EDINET）、整形されたものが存在しない、顧客が法人で単価が取れる、そして<strong>何の数字に意味があるか判断できる人がほぼいない</strong>——あなたの専門がそのまま参入障壁になる唯一の案。</div>
+  </div>
+  <div class="pickrow">
+    <div class="pickrow-top"><span class="pickrow-rank">2位</span><span class="pickrow-name">11　補助金・助成金の差分監視</span></div>
+    <div class="pickrow-why">完全自走・月額・需要が明確という三拍子。競合はいるが全国網羅と業種別絞り込みの精度で戦える。<strong>取りこぼしが金銭損失に直結する</strong>領域は解約されにくい。</div>
+  </div>
+  <div class="pickrow">
+    <div class="pickrow-top"><span class="pickrow-rank">3位</span><span class="pickrow-name">02　育成年代の大会結果データベース</span></div>
+    <div class="pickrow-why">検索需要と情報の非整形度のギャップが30案で最大。ただし<strong>未成年の個人情報を扱う</strong>ので、掲載範囲と削除依頼の運用を先に決めないと始められない。ここを設計できるかが全て。</div>
+  </div>
+  <div class="pickrow">
+    <div class="pickrow-top"><span class="pickrow-rank">4位</span><span class="pickrow-name">01　全国アリーナ・スタジアム観戦ガイド</span></div>
+    <div class="pickrow-why">最初から在庫が大きく、スポーツの土地勘が効き、法務リスクが低い。単価は低いが<strong>他の案の集客装置として使える</strong>のが本当の価値。</div>
+  </div>
+  <div class="pickrow">
+    <div class="pickrow-top"><span class="pickrow-rank">5位</span><span class="pickrow-name">09　LP自動診断ツール</span></div>
+    <div class="pickrow-why">「営業したくない」という要件に最も素直に応える案。<strong>ツールが勝手にリードを連れてくる</strong>ので、他の案が育つまでの入口として並走させやすい。</div>
+  </div>
+
+  <h2 style="font-size:1.05rem;margin:2.4rem 0 0;">この路線を選ぶと何が変わるか</h2>
+  <ul class="plain">
+    <li><strong>到達は遅くなる。</strong>営業型なら4〜7ヶ月で月50万に届いたが、この型は最初の3〜6ヶ月が売上ゼロになる。代わりに<strong>天井が消えて、自分の時間が在庫でなくなる</strong>。</li>
+    <li><strong>勝負は集客の一点に絞られる。</strong>作る難易度はどれも高くない。生き残るかどうかは、キーワード表のCをどれだけ真剣に選んだかだけで決まる。</li>
+    <li><strong>並行して走らせられる。</strong>営業型と違い、これらは同時に3つ動かしても時間を食わない。<strong>2〜3案を同時に立ち上げて、伸びた1つに寄せる</strong>のが正しい進め方。</li>
+    <li><strong>次の一手は選定ではなく検証。</strong>1位から3位について、データが実際に機械可読な形で取れるかを1日ずつ確かめる。ここで案の半分は消える。</li>
+  </ul>
+</section>
+
+<footer>
+  30案はすべて「持っている資産 × AIが安く量産できること × 人が既に集まっている場所」の掛け合わせとして構成した。追加で軸を足したいときは、キーワード表のC列を先に増やすこと——出口を増やすほうが、入口を増やすより案の質が上がる。
+</footer>
+
+</div>
