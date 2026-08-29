@@ -132,11 +132,11 @@ footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-
 <header class="masthead">
   <p class="eyebrow">全案の潰し込み / 検証ボード</p>
   <h1>消えた案と<br>残った案</h1>
-  <p class="dek">全案を一次情報で潰しにいった結果。<strong>ショートドラマは市場ごと閉じました</strong>——法務でグロース側が消え、経済性で供給側も消えたので、両側から塞がった形です。残る山場は2つの数字で、どちらも手元で走らせれば確定します。</p>
+  <p class="dek">全案を一次情報で潰しにいった結果。ショートドラマは市場ごと閉じ、<strong>広告宣伝費DBも実測 29.3% で脱落しました</strong>。生きているのは③（重いが本物）と海外B（FAST）、残る未確定は補助金の1件だけです。</p>
 
   <nav>
     <a href="#closed">閉じた案</a>
-    <a href="#pending">数字待ちの案</a>
+    <a href="#pending">実測した案</a>
     <a href="#alive">生きている案</a>
     <a href="#run">走らせるもの</a>
     <a href="#blocked">実行できなかった理由</a>
@@ -169,15 +169,22 @@ footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-
 </section>
 
 <section id="pending">
-  <div class="sec-head"><span class="sec-num">02</span><h2>数字待ちの案</h2></div>
-  <p class="sec-note">どちらも「あと1つの数字」で生死が決まるところまで来ている。スクリプトは用意した。</p>
+  <div class="sec-head"><span class="sec-num">02</span><h2>実測した案</h2></div>
+  <p class="sec-note">①は実測して脱落。②はスクリプトを走らせれば同じように確定する。</p>
 
-  <div class="item">
-    <div class="item-top"><span class="item-name">①　上場企業の広告宣伝費DB</span><span class="chip wait">網羅率待ち</span></div>
-    <div class="fline ok"><span class="k">確定</span><span class="v">広告宣伝費は標準タクソノミの要素 <code>jppfs_cor:AdvertisingExpensesSGA</code> として定義済み。<b>企業ごとの勘定科目の名寄せは不要</b>——ここが最大の懸念だったが、外れた。</span></div>
-    <div class="fline ok"><span class="k">確定</span><span class="v">EDINET API v2 は無料のSubscription-Keyで使える。書類一覧で <code>csvFlag=1</code> のものだけが本体を取得でき、CSVは<b>UTF-16のタブ区切り</b>。</span></div>
-    <div class="fline bad"><span class="k">未確定</span><span class="v"><b>販管費の内訳を開示している企業の割合。</b>調べた限り「企業によっては詳細を出していない」とされ、さらに<b>日本基準・米国基準・IFRSで扱いが違う</b>。公表された実測値は見つからなかったので、自分で数えるしかない。</span></div>
-    <div class="fline todo"><span class="k">決め方</span><span class="v">網羅率 <b>60%以上→作る／30〜60%→業種を絞って再判定／30%以下→捨てる</b>。<code>scripts/edinet_coverage.py</code> が業種別の明細CSVまで出す。</span></div>
+  <div class="item dead">
+    <div class="item-top"><span class="item-name">①　上場企業の広告宣伝費DB</span><span class="chip dead">実測して脱落</span></div>
+    <div class="fline ok"><span class="k">実測</span><span class="v">直近400日の有報 <b>10,974件・4,315社</b>から150社を無作為抽出して中身を確認。
+      <div class="calc">
+        <div><span class="k">広告宣伝費を開示している割合</span><span class="v lo">29.3%（44/150）</span></div>
+        <div><span class="k">参考：減価償却費</span><span class="v">82.0%</span></div>
+        <div><span class="k">参考：賞与引当金繰入額</span><span class="v">60.0%</span></div>
+        <div><span class="k">事前に決めた合格ライン</span><span class="v">30%</span></div>
+      </div>
+    </span></div>
+    <div class="fline ok"><span class="k">読み方</span><span class="v"><b>減価償却費が82%ということは、販管費の内訳注記そのものは広く開示されている。</b>つまり29.3%は開示慣行の問題ではなく、<b>広告宣伝費という科目を持つ会社が3割しかない</b>という事業構造の話。B2B企業では広告費が僅少で「その他」に吸収される。</span></div>
+    <div class="fline bad"><span class="k">致命傷</span><span class="v">当たった44社は森永製菓・マツダ・ワタミ・アシックス・東映など<b>消費者向けに正しく偏っており、データの質は悪くない</b>。にもかかわらず、<b>ソフトバンク・KDDI・富士フイルムHDが揃って取れない</b>——IFRS適用会社は別のタグ体系を使うため。<b>各業種の最大の広告主が抜けるベンチマークは、ベンチマークとして成立しない。</b></span></div>
+    <div class="fline bad"><span class="k">結論</span><span class="v">捨てる。①事前基準を下回った ②最大の広告主が構造的に抜ける ③そもそも検索需要がなく広告で顧客を買えない——<b>3つが独立に効いている。</b></span></div>
   </div>
 
   <div class="item">
@@ -213,10 +220,8 @@ footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-
   <p class="sec-note">どちらも標準ライブラリだけで動く。構文と動作経路は確認済み（外部通信の直前まで正常に進む）。</p>
 
   <div class="run">
-    <div class="run-name">① 広告宣伝費DBの生死を決める</div>
-    <div class="run-body">Subscription-Key の取得は無料で即時。取得後にそのまま実行すると、途中経過を出しながら最後に網羅率と判定を表示します。<b>--sample 200 でおよそ15〜25分。</b></div>
-    <div class="cmd">export EDINET_KEY=取得したキー
-python3 scripts/edinet_coverage.py --days 400 --sample 200</div>
+    <div class="run-name">① 広告宣伝費DB　<span style="color:var(--alert)">実行済み・脱落</span></div>
+    <div class="run-body">150社を実測して 29.3%。事前基準の30%を下回ったため終了。明細は <code>edinet_coverage.csv</code> に残っています。</div>
   </div>
 
   <div class="run">
@@ -225,7 +230,7 @@ python3 scripts/edinet_coverage.py --days 400 --sample 200</div>
     <div class="cmd">python3 scripts/jgrants_probe.py</div>
   </div>
 
-  <div class="callout"><b>結果をここに貼ってください。</b>数字を読んで、①を作るか捨てるか、②を作り直すか捨てるかを確定させます。そのうえで残った案の実装計画に進みます。</div>
+  <div class="callout"><b>残りは②の1本だけです。</b>これを走らせれば、検証フェーズは終わり。あとは③（大会結果DB）と海外B（FAST）のどちらに時間を割くかという、<b>選択の問題になります。</b></div>
 </section>
 
 <section id="blocked">
@@ -251,7 +256,7 @@ python3 scripts/edinet_coverage.py --days 400 --sample 200</div>
 </section>
 
 <footer>
-  検証の総括：30案 → 上位5案 → 4案 → いま生きているのは<b>①（数字待ち）②（とどめ待ち）③（重いが本物）、海外はFAST1本</b>。案は減りましたが、減った分だけ確度は上がっています。<b>潰れた案の数は、進捗の指標です。</b>
+  検証の総括：30案 → 上位5案 → 4案 → いま生きているのは<b>③（重いが本物）と海外B（FAST）、未確定は②のみ</b>。①は実測29.3%で脱落しました。案は減りましたが、減った分だけ確度は上がっています。<b>潰れた案の数は、進捗の指標です。</b>
 </footer>
 
 </div>
