@@ -366,7 +366,7 @@ const ROOMS = ["open", "pillars", "cross", "corridors", "arena"];
 function buildRoom(w) {
   const r = stream("room", w);
   // ウェーブが進むほど戦場が狭くなる＝数値をいじらずに難易度を上げる
-  MW = MH = Math.max(28, Math.round(46 - (w - 1) * 1.5));
+  MW = MH = 72;                       // ランを通して1枚。狭くなるのは崩落する外周でやる
   solid = new Uint8Array(MW * MH);
   wallHp = new Float32Array(MW * MH);
   ground = new Uint8Array(MW * MH);
@@ -412,7 +412,7 @@ function buildRoom(w) {
     }
   }
   // どの部屋にも岩を散らす
-  const rocks = 12 + ((r() * 14) | 0);
+  const rocks = 34 + ((r() * 26) | 0);
   for (let k = 0; k < rocks; k++) {
     const x = 5 + ((r() * (MW - 10)) | 0), y = 5 + ((r() * (MH - 10)) | 0);
     if (Math.hypot(x - cx, y - cy) < 6) continue;
@@ -421,7 +421,7 @@ function buildRoom(w) {
   }
   // 床属性：通れるが代償がある区画
   const kinds = [FLOOR.SWAMP, FLOOR.POISON, FLOOR.ICE, FLOOR.THORN];
-  const patches = w < 3 ? 3 : 4 + ((r() * 4) | 0);
+  const patches = 9 + ((r() * 7) | 0);
   for (let k = 0; k < patches; k++) {
     const t = kinds[(r() * kinds.length) | 0];
     const x = 6 + ((r() * (MW - 12)) | 0), y = 6 + ((r() * (MH - 12)) | 0);
@@ -519,10 +519,12 @@ let props = [];
 let pointCd = 0;
 
 function freeSpot(r, cx, cy, minDist) {
-  for (let i = 0; i < 90; i++) {
+  const mcx = MW / 2, mcy = MH / 2, inner = (collapseR() / TILE) * .88;
+  for (let i = 0; i < 120; i++) {
     const tx = 3 + ((r() * (MW - 6)) | 0), ty = 3 + ((r() * (MH - 6)) | 0);
     if (solid[idx(tx, ty)] || ground[idx(tx, ty)]) continue;
     if (Math.hypot(tx - cx, ty - cy) < minDist) continue;
+    if (Math.hypot(tx - mcx, ty - mcy) > inner) continue;
     return { x: tx * TILE + TILE / 2, y: ty * TILE + TILE / 2 };
   }
   return null;
@@ -532,7 +534,7 @@ function placeProps(w, r, home) {
   const cx = MW >> 1, cy = MH >> 1;
   const sc = Math.pow(1.27, w - 1);
 
-  const barrels = 3 + ((r() * 4) | 0);              // 爆発ドラム：地形が武器になる
+  const barrels = 7 + ((r() * 6) | 0);              // 爆発ドラム：地形が武器になる
   for (let i = 0; i < barrels; i++) {
     const p = freeSpot(r, cx, cy, 5);
     if (p) props.push({ kind: "barrel", x: p.x, y: p.y, r: 12, hp: 16, maxHp: 16 });
@@ -552,6 +554,50 @@ function placeProps(w, r, home) {
     const hp = 260 * sc;
     props.push({ kind: "escort", x: home.x + 40, y: home.y + 40, r: 15, hp, maxHp: hp, spd: 74 });
   }
+}
+
+
+// ウェーブの切れ目に落ちてくる補給。群れを押し戻して隙間を作り、物資を置いていく
+function supplyDrop() {
+  const R = 230;
+  parts.push({ ring: true, x: P.x, y: P.y, r0: 12, r1: R, t: .5, max: .5 });
+  if (!reduceMotion) { shake = 14; hitStop = .06; }
+  for (const e of enemies) {
+    const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1;
+    if (d > R) continue;
+    const push = (1 - d / R) * 210;          // 殺さずに押しのける＝理不尽な即死を作らない
+    moveEnt(e, dx / d * push, dy / d * push);
+    e.hit = .12;
+  }
+  const r = stream("supply", wave);
+  const cx = (P.x / TILE) | 0, cy = (P.y / TILE) | 0;
+  for (let i = 0; i < 2; i++) {              // ドラムの補充
+    const p = freeSpot(r, cx, cy, 6);
+    if (p) props.push({ kind: "barrel", x: p.x, y: p.y, r: 12, hp: 16, maxHp: 16 });
+  }
+  const holes = props.filter(p => p.kind === "spawner" && !p.dead).length;
+  if (wave >= 4 && holes < Math.min(4, 1 + ((wave / 4) | 0))) {
+    const p = freeSpot(r, cx, cy, 10);       // 新しい湧き穴が開く
+    if (p) {
+      const hp = 70 * Math.pow(1.27, wave - 1);
+      props.push({ kind: "spawner", x: p.x, y: p.y, r: 16, hp, maxHp: hp, cd: 3 });
+      parts.push({ ring: true, x: p.x, y: p.y, r0: 4, r1: 60, t: .5, max: .5 });
+    }
+  }
+  if (!props.some(p => p.kind === "point" && !p.dead) && pointCd <= 0 && wave >= 2) {
+    const p = freeSpot(r, cx, cy, 8);
+    if (p) props.push({ kind: "point", x: p.x, y: p.y, r: 76, fill: 0 });
+  }
+  if (wave >= 4 && wave % 4 === 0 && !props.some(p => p.kind === "escort" && !p.dead)) {
+    const hp = 260 * Math.pow(1.27, wave - 1);
+    props.push({ kind: "escort", x: P.x + 40, y: P.y + 40, r: 15, hp, maxHp: hp, spd: 74 });
+  }
+}
+
+// 外周の崩落。マップは1枚のまま、使える範囲だけがウェーブごとに狭くなる
+function collapseR() {
+  const maxR = (Math.min(MW, MH) * TILE) / 2 - TILE * 2;
+  return Math.max(TILE * 12, maxR * (1 - .04 * (wave - 1)));
 }
 
 function damageProp(p, dmg) {
@@ -880,6 +926,22 @@ function wstat(w) {
 const CAND = 10;
 const candE = new Array(CAND), candD = new Float64Array(CAND);
 function nearestEnemy(maxD) {
+  // ドラムは最優先。ただし爆風に敵が1体もいないなら撃っても無駄なので撃たない
+  let bestBarrel = null, bbd = maxD * maxD;
+  for (const pr of props) {
+    if (pr.dead || pr.kind !== "barrel") continue;
+    const d = (pr.x - P.x) ** 2 + (pr.y - P.y) ** 2;
+    if (d >= bbd) continue;
+    let worth = false;
+    for (const e of enemies) {
+      if (!e.dead && (e.x - pr.x) ** 2 + (e.y - pr.y) ** 2 < 104 * 104) { worth = true; break; }
+    }
+    if (!worth) continue;
+    if (!hasLOS(P.x, P.y, pr.x, pr.y)) continue;
+    bbd = d; bestBarrel = pr;
+  }
+  if (bestBarrel) return bestBarrel;
+
   let n = 0, worst = maxD * maxD;
   for (const e of enemies) {
     const d = (e.x - P.x) ** 2 + (e.y - P.y) ** 2;
@@ -1094,7 +1156,9 @@ function spawnRing() {
     const a = rngW() * 6.2832;
     const d = Math.max(W, H) * .55 + randW(10, 70);
     const x = P.x + Math.cos(a) * d, y = P.y + Math.sin(a) * d;
-    if (x > TILE * 2 && y > TILE * 2 && x < mapW() - TILE * 2 && y < mapH() - TILE * 2 && !solidAt(x, y)) {
+    const mcx = mapW() / 2, mcy = mapH() / 2;
+    if (x > TILE * 2 && y > TILE * 2 && x < mapW() - TILE * 2 && y < mapH() - TILE * 2
+        && Math.hypot(x - mcx, y - mcy) < collapseR() * .96 && !solidAt(x, y)) {
       return { x, y };
     }
   }
@@ -1129,14 +1193,13 @@ function spawnRate() {
   // 湧き穴が生きている分だけ、空からの湧きを減らす（総量が跳ねないように）
   let holes = 0;
   for (const p of props) if (!p.dead && p.kind === "spawner") holes++;
-  return Math.max(1.8, 2.6 + wave * 2.7 - holes * 1.7);
+  return Math.max(1.5, 2.2 + wave * 1.9 - holes * 1.5);
 }
 
 function endWave() {
   paused = true;   // ここでのレベルアップはショップを閉じた後にまとめて出す
-  // 残った敵は塵に、落ちているものは全部回収してからショップへ
-  for (const e of enemies) burst(e.x, e.y, 2, "#6b5a3c", 70);
-  enemies.length = 0; eshots.length = 0; boss = null;
+  // 群れも地形もそのまま。落ちているものだけ拾い上げてショップへ
+  eshots.length = 0;
   for (const g of drops) { gainXp(g.xp); if (g.coin) coins += Math.round(2 * P.s.fortune); }
   drops.length = 0;
   coins += Math.round(P.s.harvest);
@@ -1222,6 +1285,11 @@ function update(dt) {
   P.vy += (inp.y * spd - P.vy) * k;
   moveEnt(P, P.vx * dt, P.vy * dt);
   if (pfl === FLOOR.POISON) { P.hp -= 3.5 * Math.pow(1.12, wave - 1) * dt; P.hurtT = .12; }
+  // 外周は崩落していて長居できない＝マップを作り直さずに戦場を狭めていく
+  if (Math.hypot(P.x - mapW() / 2, P.y - mapH() / 2) > collapseR()) {
+    P.hp -= 9 * Math.pow(1.09, wave - 1) * dt;
+    P.hurtT = .16;
+  }
   P.hurtT = Math.max(0, P.hurtT - dt);
 
   // 流れ場はプレイヤーがマスを移ったときだけ作り直せば足りる
@@ -1495,6 +1563,20 @@ function draw() {
         ctx.fillRect(x, y + TILE - 5, TILE, 5);
       }
     }
+  }
+
+  {
+    const CR = collapseR(), mcx = mapW() / 2, mcy = mapH() / 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(camX, camY, W, H);
+    ctx.arc(mcx, mcy, CR, 0, 6.2832, true);
+    ctx.fillStyle = "rgba(126,28,12,.32)";
+    ctx.fill("evenodd");
+    ctx.restore();
+    ctx.strokeStyle = "rgba(255,124,58,.5)";
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(mcx, mcy, CR, 0, 6.2832); ctx.stroke();
   }
 
   drawProps();
@@ -1809,10 +1891,8 @@ el("goBtn").onclick = () => {
   el("shopScreen").classList.remove("on");
   wave++; waveT = WAVE_LEN; spawnAcc = 0; bossSpawned = false;
   rngW = stream("wave", wave);
-  const spot = buildRoom(wave);          // ウェーブごとに部屋を組み直す
-  P.x = spot.x; P.y = spot.y; P.vx = P.vy = 0;
-  rebuildFlow();
-  P.hp = Math.min(P.s.hp, P.hp + P.s.hp * .15);   // ウェーブ間の回復
+  supplyDrop();                          // 部屋も群れもそのまま。補給が降ってくるだけ
+  P.hp = Math.min(P.s.hp, P.hp + P.s.hp * .15);
   banner("WAVE " + wave);
   paused = pendingLevels > 0;
   if (pendingLevels > 0) openLevelUp();
@@ -2090,6 +2170,12 @@ window.__horde = {
       const dx = P.x - (tx * TILE + 13), dy = P.y - (ty * TILE + 13);
       const d2 = dx * dx + dy * dy || 1;
       ax += dx / d2 * 6; ay += dy / d2 * 6;
+    }
+    const CR = collapseR(), mcx = mapW() / 2, mcy = mapH() / 2;
+    const dc = Math.hypot(P.x - mcx, P.y - mcy);
+    if (dc > CR * .82) {
+      const w = (dc - CR * .82) / (CR * .18) * .02;
+      ax += (mcx - P.x) / dc * w; ay += (mcy - P.y) / dc * w;
     }
     const m = Math.hypot(ax, ay) || 1;
     return { x: ax / m, y: ay / m };
