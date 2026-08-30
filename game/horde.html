@@ -1370,8 +1370,8 @@ function update(dt) {
       if (d2 > min * min || d2 === 0) continue;
       const d = Math.sqrt(d2), push = (min - d) * .5;
       dx /= d; dy /= d;
-      a.x -= dx * push; a.y -= dy * push;
-      b.x += dx * push; b.y += dy * push;
+      moveEnt(a, -dx * push, -dy * push);     // 壁ごしに押し込まない
+      moveEnt(b, dx * push, dy * push);
     }
   }
 
@@ -1394,6 +1394,24 @@ function update(dt) {
     let dx = P.x - e.x, dy = P.y - e.y;
     const d = Math.hypot(dx, dy) || 1;
     if (d > despawn) { e.dead = true; continue; }
+    // 壁に埋まったら（壁が建った・押し込まれた）最寄りの空きマスへ這い出す
+    if (!TYPES[e.kind].fly && solidAt(e.x, e.y)) {
+      const tx = (e.x / TILE) | 0, ty = (e.y / TILE) | 0;
+      let bx = 0, by = 0, bd = Infinity;
+      for (let oy = -2; oy <= 2; oy++) for (let ox = -2; ox <= 2; ox++) {
+        const nx = tx + ox, ny = ty + oy;
+        if (!inMap(nx, ny) || solid[idx(nx, ny)]) continue;
+        const px = nx * TILE + TILE / 2, py = ny * TILE + TILE / 2;
+        const dd = (px - e.x) ** 2 + (py - e.y) ** 2;
+        if (dd < bd) { bd = dd; bx = px; by = py; }
+      }
+      if (bd < Infinity) {
+        const ex = bx - e.x, ey = by - e.y, m = Math.hypot(ex, ey) || 1;
+        const step = Math.min(m, (e.spd * 1.6 + 40) * dt);
+        e.x += ex / m * step; e.y += ey / m * step;
+      }
+      continue;                               // 這い出している間は殴ってこない
+    }
     e.ph += dt * 6;
     const wob = e.kind === "boss" ? 0 : Math.sin(e.ph) * .22;
     dx /= d; dy /= d;
@@ -2223,6 +2241,7 @@ window.__horde = {
   get bank() { return save.bank; },
   get seed() { return runSeed; },
   get props() { return props.map(p => p.kind).join(","); },
+  get stuck() { let n = 0; for (const e of enemies) if (solidAt(e.x, e.y)) n++; return n; },
   get escort() { const e = props.find(x => x.kind === "escort" && !x.dead); return e ? e.hp / e.maxHp : null; },
   // 自動テスト用：近くの脅威から離れる向きを返す
   get avoid() {
