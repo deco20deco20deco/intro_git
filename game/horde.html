@@ -926,21 +926,16 @@ function wstat(w) {
 const CAND = 10;
 const candE = new Array(CAND), candD = new Float64Array(CAND);
 function nearestEnemy(maxD) {
-  // ドラムは最優先。ただし爆風に敵が1体もいないなら撃っても無駄なので撃たない
-  let bestBarrel = null, bbd = maxD * maxD;
+  // ドラムと湧き穴は敵より優先。射程内で射線が通れば無条件に狙う
+  let bestProp = null, bpd = maxD * maxD;
   for (const pr of props) {
-    if (pr.dead || pr.kind !== "barrel") continue;
+    if (pr.dead || (pr.kind !== "barrel" && pr.kind !== "spawner")) continue;
     const d = (pr.x - P.x) ** 2 + (pr.y - P.y) ** 2;
-    if (d >= bbd) continue;
-    let worth = false;
-    for (const e of enemies) {
-      if (!e.dead && (e.x - pr.x) ** 2 + (e.y - pr.y) ** 2 < 104 * 104) { worth = true; break; }
-    }
-    if (!worth) continue;
+    if (d >= bpd) continue;
     if (!hasLOS(P.x, P.y, pr.x, pr.y)) continue;
-    bbd = d; bestBarrel = pr;
+    bpd = d; bestProp = pr;
   }
-  if (bestBarrel) return bestBarrel;
+  if (bestProp) return bestProp;
 
   let n = 0, worst = maxD * maxD;
   for (const e of enemies) {
