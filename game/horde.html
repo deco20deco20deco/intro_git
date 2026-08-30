@@ -292,6 +292,9 @@ const TYPES = {
   brute:  { r: 13, hp: 62,  spd: 40, dmg: 22, col: "#3c4a3a", head: "#6f9350", xp: 5, armor: .5 },
   spitter:{ r: 8,  hp: 13,  spd: 44, dmg: 6,  col: "#46583a", head: "#b6d84a", xp: 2, range: 235 },
   bomber: { r: 9,  hp: 9,   spd: 94, dmg: 8,  col: "#6b3a2e", head: "#e2a33c", xp: 2, boom: true },
+  breaker:{ r: 12, hp: 44,  spd: 46, dmg: 16, col: "#4a3a28", head: "#c08a4a", xp: 3, breaker: true },
+  mason:  { r: 9,  hp: 24,  spd: 54, dmg: 8,  col: "#2f4450", head: "#6fb5c9", xp: 3, mason: true },
+  flyer:  { r: 7,  hp: 11,  spd: 88, dmg: 11, col: "#3d3550", head: "#9b8ad6", xp: 2, fly: true },
   boss:   { r: 34, hp: 430, spd: 30, dmg: 34, col: "#3f5a30", head: "#8fd14a", xp: 60 },
 };
 
@@ -309,7 +312,8 @@ const FLOOR_EDGE = ["", "#6f9459", "#9c72b5", "#d3ecf6", "#c25a45"];
 const FLOOR_NAME = ["", "沼", "毒", "氷", "茨"];
 
 let MW = 60, MH = 60;                  // 部屋の広さ（マス）
-let solid = new Uint8Array(MW * MH);
+let solid = new Uint8Array(MW * MH);     // 0=通行可 1=岩 2=壊せる壁
+let wallHp = new Float32Array(MW * MH);
 let ground = new Uint8Array(MW * MH);
 let fdist = new Int32Array(MW * MH);   // プレイヤーまでの距離（マス数）
 let fqueue = new Int32Array(MW * MH);
@@ -332,8 +336,23 @@ const mapW = () => MW * TILE, mapH = () => MH * TILE;
 // --- 部屋の生成 ---------------------------------------------------
 function fillRect(tx, ty, w, h, v) {
   for (let y = ty; y < ty + h; y++) for (let x = tx; x < tx + w; x++) {
-    if (inMap(x, y)) solid[idx(x, y)] = v;
+    if (!inMap(x, y)) continue;
+    solid[idx(x, y)] = v;
+    if (v === 2) wallHp[idx(x, y)] = 26 * Math.pow(1.18, wave - 1);
   }
+}
+// 壁を削る。壊れたら流れ場を作り直す（＝道が変わる）
+function hitWall(x, y, dmg) {
+  const tx = (x / TILE) | 0, ty = (y / TILE) | 0;
+  if (!inMap(tx, ty)) return false;
+  const i = idx(tx, ty);
+  if (solid[i] !== 2) return false;
+  wallHp[i] -= dmg;
+  if (wallHp[i] <= 0) {
+    solid[i] = 0; wallHp[i] = 0; flowTile = -1;
+    burst(tx * TILE + TILE / 2, ty * TILE + TILE / 2, 8, "#8a7250", 130);
+  }
+  return true;
 }
 function blob(r, type, cx, cy, rad) {
   for (let y = cy - rad; y <= cy + rad; y++) for (let x = cx - rad; x <= cx + rad; x++) {
@@ -349,6 +368,7 @@ function buildRoom(w) {
   // ウェーブが進むほど戦場が狭くなる＝数値をいじらずに難易度を上げる
   MW = MH = Math.max(28, Math.round(46 - (w - 1) * 1.5));
   solid = new Uint8Array(MW * MH);
+  wallHp = new Float32Array(MW * MH);
   ground = new Uint8Array(MW * MH);
   fdist = new Int32Array(MW * MH);
   fqueue = new Int32Array(MW * MH);
@@ -396,7 +416,8 @@ function buildRoom(w) {
   for (let k = 0; k < rocks; k++) {
     const x = 5 + ((r() * (MW - 10)) | 0), y = 5 + ((r() * (MH - 10)) | 0);
     if (Math.hypot(x - cx, y - cy) < 6) continue;
-    fillRect(x, y, 1 + ((r() * 4) | 0), 1 + ((r() * 4) | 0), 1);
+    // 3割は壊せる壁。火力で道を作れる＝ビルドが移動性能になる
+    fillRect(x, y, 1 + ((r() * 4) | 0), 1 + ((r() * 4) | 0), r() < .3 ? 2 : 1);
   }
   // 床属性：通れるが代償がある区画
   const kinds = [FLOOR.SWAMP, FLOOR.POISON, FLOOR.ICE, FLOOR.THORN];
@@ -411,7 +432,9 @@ function buildRoom(w) {
   for (let y = cy - 3; y <= cy + 3; y++) for (let x = cx - 3; x <= cx + 3; x++) {
     if (inMap(x, y)) { solid[idx(x, y)] = 0; ground[idx(x, y)] = 0; }
   }
-  return { x: cx * TILE + TILE / 2, y: cy * TILE + TILE / 2 };
+  const home = { x: cx * TILE + TILE / 2, y: cy * TILE + TILE / 2 };
+  placeProps(w, r, home);
+  return home;
 }
 
 // --- フローフィールド ------------------------------------------------
@@ -486,6 +509,186 @@ function moveEnt(o, mx, my) {
   if (my) {
     const ny = o.y + my;
     if (!solidAt(o.x, ny + Math.sign(my) * o.r)) o.y = ny;
+  }
+}
+
+// =====================================================================
+//  props — 地形に置かれるモノ：爆発ドラム／湧き穴／制圧ポイント／護衛対象
+// =====================================================================
+let props = [];
+let pointCd = 0;
+
+function freeSpot(r, cx, cy, minDist) {
+  for (let i = 0; i < 90; i++) {
+    const tx = 3 + ((r() * (MW - 6)) | 0), ty = 3 + ((r() * (MH - 6)) | 0);
+    if (solid[idx(tx, ty)] || ground[idx(tx, ty)]) continue;
+    if (Math.hypot(tx - cx, ty - cy) < minDist) continue;
+    return { x: tx * TILE + TILE / 2, y: ty * TILE + TILE / 2 };
+  }
+  return null;
+}
+function placeProps(w, r, home) {
+  props = []; pointCd = 0;
+  const cx = MW >> 1, cy = MH >> 1;
+  const sc = Math.pow(1.27, w - 1);
+
+  const barrels = 3 + ((r() * 4) | 0);              // 爆発ドラム：地形が武器になる
+  for (let i = 0; i < barrels; i++) {
+    const p = freeSpot(r, cx, cy, 5);
+    if (p) props.push({ kind: "barrel", x: p.x, y: p.y, r: 12, hp: 16, maxHp: 16 });
+  }
+  if (w >= 4) {                                     // 湧き穴：壊せば湧きが止まる
+    const n = Math.min(4, 1 + ((w / 4) | 0));
+    for (let i = 0; i < n; i++) {
+      const p = freeSpot(r, cx, cy, 9);
+      if (p) props.push({ kind: "spawner", x: p.x, y: p.y, r: 16, hp: 70 * sc, maxHp: 70 * sc, cd: 2 + r() * 2 });
+    }
+  }
+  if (w >= 2) {                                     // 制圧ポイント：立ち止まる理由
+    const p = freeSpot(r, cx, cy, 7);
+    if (p) props.push({ kind: "point", x: p.x, y: p.y, r: 76, fill: 0 });
+  }
+  if (w >= 4 && w % 4 === 0) {                      // 護衛対象：置き去りにできない
+    const hp = 260 * sc;
+    props.push({ kind: "escort", x: home.x + 40, y: home.y + 40, r: 15, hp, maxHp: hp, spd: 74 });
+  }
+}
+
+function damageProp(p, dmg) {
+  if (p.dead || p.kind === "point") return;
+  p.hp -= dmg;
+  p.hit = .1;
+  if (p.hp <= 0) {
+    p.dead = true;
+    if (p.kind === "barrel") barrelBlast(p);
+    else if (p.kind === "spawner") { burst(p.x, p.y, 22, "#7a4a8a", 200); banner("HOLE SEALED"); coins += Math.round(12 * P.s.fortune); }
+    else if (p.kind === "escort") { burst(p.x, p.y, 26, "#8e2f28", 220); banner("ESCORT LOST"); }
+  }
+}
+function barrelBlast(p) {
+  const R = 104, RP = 62, dmgE = 70 * Math.pow(1.3, wave - 1), dmgP = 15 * Math.pow(1.08, wave - 1);
+  parts.push({ ring: true, x: p.x, y: p.y, r0: 8, r1: R, t: .32, max: .32 });
+  burst(p.x, p.y, 26, "#ffb347", 260);
+  if (!reduceMotion) { shake = Math.max(shake, 12); hitStop = Math.max(hitStop, .05); }
+  for (const e of enemies) {
+    if (!e.dead && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 < R * R) damage(e, dmgE);
+  }
+  for (const o of props) {                          // ドラムは連鎖する
+    if (o !== p && !o.dead && o.kind === "barrel" && (o.x - p.x) ** 2 + (o.y - p.y) ** 2 < R * R) damageProp(o, 999);
+  }
+  if ((P.x - p.x) ** 2 + (P.y - p.y) ** 2 < (RP + P.r) ** 2) { P.hp -= dmgP; P.hurtT = .25; }
+  for (let ty = ((p.y - R) / TILE) | 0; ty <= ((p.y + R) / TILE) | 0; ty++) {
+    for (let tx = ((p.x - R) / TILE) | 0; tx <= ((p.x + R) / TILE) | 0; tx++) {
+      if (inMap(tx, ty)) hitWall(tx * TILE + 2, ty * TILE + 2, 40);
+    }
+  }
+}
+
+function updateProps(dt) {
+  for (const p of props) {
+    if (p.dead) continue;
+    if (p.hit) p.hit = Math.max(0, p.hit - dt);
+
+    if (p.kind === "spawner") {
+      p.cd -= dt;
+      if (p.cd <= 0 && enemies.length < SPAWN_CAP) {
+        p.cd = 3.2;
+        for (let i = 0; i < 2 + (wave > 8 ? 1 : 0); i++) {
+          const e = spawnEnemy(rngW() < .3 ? "runner" : "walker");
+          const a = rngW() * 6.2832;
+          e.x = p.x + Math.cos(a) * 20; e.y = p.y + Math.sin(a) * 20;
+        }
+        parts.push({ ring: true, x: p.x, y: p.y, r0: 4, r1: 30, t: .3, max: .3 });
+      }
+    } else if (p.kind === "point") {
+      const inside = (P.x - p.x) ** 2 + (P.y - p.y) ** 2 < p.r * p.r;
+      if (inside) {
+        p.fill += dt / 6;
+        if (p.fill >= 1) {
+          p.dead = true; pointCd = 7;
+          coins += Math.round(34 * P.s.fortune);
+          P.hp = Math.min(P.s.hp, P.hp + P.s.hp * .1);
+          banner("SECURED");
+          addText(p.x, p.y - 20, "+" + Math.round(34 * P.s.fortune) + " ¤", "#ffc53d");
+        }
+      } else p.fill = Math.max(0, p.fill - dt / 14);
+    } else if (p.kind === "escort") {
+      // 流れ場はプレイヤーを指しているので、そのまま追従に使える
+      const d = Math.hypot(P.x - p.x, P.y - p.y);
+      if (d > 46) {
+        flowDir(p.x, p.y, fv);
+        let mx = fv.x, my = fv.y;
+        if (!mx && !my) { mx = (P.x - p.x) / d; my = (P.y - p.y) / d; }
+        moveEnt(p, mx * p.spd * dt, my * p.spd * dt);
+      }
+      const cx = (p.x / CELL) | 0, cy = (p.y / CELL) | 0;   // 近くの敵に噛まれる
+      let bite = 0;
+      for (let ox = -2; ox <= 2; ox++) for (let oy = -2; oy <= 2; oy++) {
+        const cell = grid.get((cx + ox) + "," + (cy + oy));
+        if (!cell) continue;
+        for (const e of cell) {
+          if (e.dead) continue;
+          const rr = e.r + p.r;
+          if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 < rr * rr) bite += e.dmg;
+        }
+      }
+      if (bite > 0) damageProp(p, Math.min(bite, 46 * Math.pow(1.1, wave - 1)) * dt);
+    }
+  }
+  if (pointCd > 0) {                                 // 制圧ポイントは少ししたら別の場所に湧く
+    pointCd -= dt;
+    if (pointCd <= 0) {
+      const p = freeSpot(stream("point", wave, time | 0), (P.x / TILE) | 0, (P.y / TILE) | 0, 8);
+      if (p) props.push({ kind: "point", x: p.x, y: p.y, r: 76, fill: 0 });
+    }
+  }
+  props = props.filter(p => !p.dead);
+}
+
+// 弾・爆発がモノに当たるかを見る（数が少ないので総当たりで足りる）
+function hitProps(x, y, dmg, rad) {
+  for (const p of props) {
+    if (p.dead || p.kind === "point") continue;
+    const rr = p.r + (rad || 0);
+    if ((p.x - x) ** 2 + (p.y - y) ** 2 < rr * rr) { damageProp(p, dmg); return true; }
+  }
+  return false;
+}
+
+function drawProps() {
+  for (const p of props) {
+    if (p.kind === "point") {
+      ctx.strokeStyle = "rgba(255,197,61,.5)"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832); ctx.stroke();
+      ctx.strokeStyle = "#ffc53d"; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, -1.5708, -1.5708 + 6.2832 * p.fill); ctx.stroke();
+      ctx.fillStyle = "rgba(255,197,61,.10)";
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832); ctx.fill();
+      ctx.fillStyle = "#ffc53d"; ctx.font = '700 12px "Chakra Petch", sans-serif'; ctx.textAlign = "center";
+      ctx.fillText("HOLD " + Math.round(p.fill * 100) + "%", p.x, p.y + 4);
+      continue;
+    }
+    ctx.fillStyle = "rgba(60,40,18,.28)";
+    ctx.beginPath(); ctx.ellipse(p.x, p.y + p.r * .5, p.r, p.r * .45, 0, 0, 6.2832); ctx.fill();
+    if (p.kind === "barrel") {
+      ctx.fillStyle = p.hit ? "#fff" : "#b5471f";
+      ctx.fillRect(p.x - 10, p.y - 13, 20, 26);
+      ctx.fillStyle = "#f0c14b"; ctx.fillRect(p.x - 10, p.y - 4, 20, 5);
+    } else if (p.kind === "spawner") {
+      ctx.fillStyle = "#150f18";
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r, p.r * .8, 0, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = p.hit ? "#fff" : "#a06ad0"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r + 3 + Math.sin(time * 4) * 2, p.r * .8 + 2, 0, 0, 6.2832); ctx.stroke();
+    } else if (p.kind === "escort") {
+      ctx.fillStyle = p.hit ? "#fff" : "#c9a227";
+      ctx.fillRect(p.x - 14, p.y - 10, 28, 20);
+      ctx.fillStyle = "#2b2418"; ctx.fillRect(p.x - 14, p.y - 12, 28, 4); ctx.fillRect(p.x - 14, p.y + 8, 28, 4);
+    }
+    if (p.maxHp && p.hp < p.maxHp) {
+      ctx.fillStyle = "rgba(0,0,0,.6)"; ctx.fillRect(p.x - 16, p.y - p.r - 12, 32, 4);
+      ctx.fillStyle = p.kind === "escort" ? "#ffc53d" : "#e15a4c";
+      ctx.fillRect(p.x - 16, p.y - p.r - 12, 32 * Math.max(0, p.hp / p.maxHp), 4);
+    }
   }
 }
 
@@ -597,6 +800,7 @@ let P, enemies, bullets, beams, eshots, drops, parts, texts, grid;
 let time, wave, waveT, kills, coins, spawnAcc, shake, boss, hitStop;
 let running, over, paused, rerolls, freeRerolls, offers, bossSpawned;
 let runSeed = "-", dailyMode = false, rngW = Math.random;
+let liveSpit = 0, liveMason = 0, liveBreak = 0;   // 種類ごとの生存数（湧きの上限に使う）
 
 function baseStats() {
   return {
@@ -625,6 +829,7 @@ function resetGame(seed, daily) {
     s, hp: s.hp, weapons: [], items: [],
   };
   addWeapon("bolt");
+  wave = 1;
   const spot = buildRoom(1);
   P.x = spot.x; P.y = spot.y;
   enemies = []; bullets = []; beams = []; eshots = []; drops = []; parts = []; texts = [];
@@ -732,6 +937,12 @@ function fireWeapon(w, st) {
       const perp = Math.abs(-rx * uy + ry * ux);
       if (perp < half + e.r) damage(e, st.dmg);
     }
+    for (const pr of props) {
+      if (pr.dead || pr.kind === "point") continue;
+      const rx = pr.x - P.x, ry = pr.y - P.y, proj = rx * ux + ry * uy;
+      if (proj < 0 || proj > len) continue;
+      if (Math.abs(-rx * uy + ry * ux) < half + pr.r) damageProp(pr, st.dmg);
+    }
     if (!reduceMotion) shake = Math.max(shake, 4);
     return true;
   }
@@ -741,6 +952,9 @@ function novaBlast(R, dmg) {
   parts.push({ ring: true, x: P.x, y: P.y, r0: 10, r1: R, t: .34, max: .34 });
   for (const e of enemies) {
     if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R) damage(e, dmg);
+  }
+  for (const p of props) {
+    if (!p.dead && p.kind !== "point" && (p.x - P.x) ** 2 + (p.y - P.y) ** 2 < R * R) damageProp(p, dmg);
   }
   if (!reduceMotion) shake = Math.max(shake, 5);
 }
@@ -899,7 +1113,7 @@ function spawnEnemy(kind) {
     spd: t.spd * Math.min(1.9, 1 + (wave - 1) * .05) * randW(.9, 1.1),
     dmg: t.dmg * Math.pow(1.13, wave - 1),
     xp: t.xp, hit: 0, orbCd: 0, ph: Math.random() * 6.28,
-    armor: t.armor || 1, fireCd: randW(.4, 2.2), los: true, losT: randW(0, .3), thornT: .5,
+    armor: t.armor || 1, fireCd: randW(.4, 2.2), los: true, losT: randW(0, .3), thornT: .5, buildCd: randW(2, 5),
   };
   enemies.push(e);
   return e;
@@ -911,7 +1125,12 @@ function spawnBoss() {
   banner("BOSS");
   if (!reduceMotion) shake = 14;
 }
-function spawnRate() { return 3 + wave * 3.2; }
+function spawnRate() {
+  // 湧き穴が生きている分だけ、空からの湧きを減らす（総量が跳ねないように）
+  let holes = 0;
+  for (const p of props) if (!p.dead && p.kind === "spawner") holes++;
+  return Math.max(1.8, 2.6 + wave * 2.7 - holes * 1.7);
+}
 
 function endWave() {
   paused = true;   // ここでのレベルアップはショップを閉じた後にまとめて出す
@@ -921,6 +1140,8 @@ function endWave() {
   for (const g of drops) { gainXp(g.xp); if (g.coin) coins += Math.round(2 * P.s.fortune); }
   drops.length = 0;
   coins += Math.round(P.s.harvest);
+  const esc = props.find(p => p.kind === "escort" && !p.dead);
+  if (esc) { coins += Math.round(80 * P.s.fortune); banner("ESCORT SAFE"); }
   openShop();
 }
 
@@ -942,6 +1163,9 @@ function explode(e) {
   if ((P.x - e.x) ** 2 + (P.y - e.y) ** 2 < (R + P.r) ** 2) {
     P.hp -= 14 * Math.pow(1.11, wave - 1); P.hurtT = .22;
     if (!reduceMotion) shake = Math.max(shake, 7);
+  }
+  for (const o of props) {
+    if (!o.dead && o.kind !== "point" && (o.x - e.x) ** 2 + (o.y - e.y) ** 2 < R * R) damageProp(o, 40);
   }
   if (explDepth > 3) return;              // 自爆の連鎖は3段まで
   explDepth++;
@@ -991,13 +1215,13 @@ function update(dt) {
 
   const inp = readInput();
   const pfl = floorAt(P.x, P.y);
-  const spd = P.spd * P.s.move * (pfl === FLOOR.SWAMP ? .55 : 1);
+  const spd = P.spd * P.s.move * (pfl === FLOOR.SWAMP ? .68 : 1);
   const accel = pfl === FLOOR.ICE ? 1.8 : 16;        // 氷は止まれない
   const k = Math.min(1, accel * dt);
   P.vx += (inp.x * spd - P.vx) * k;
   P.vy += (inp.y * spd - P.vy) * k;
   moveEnt(P, P.vx * dt, P.vy * dt);
-  if (pfl === FLOOR.POISON) { P.hp -= 5 * Math.pow(1.12, wave - 1) * dt; P.hurtT = .12; }
+  if (pfl === FLOOR.POISON) { P.hp -= 3.5 * Math.pow(1.12, wave - 1) * dt; P.hurtT = .12; }
   P.hurtT = Math.max(0, P.hurtT - dt);
 
   // 流れ場はプレイヤーがマスを移ったときだけ作り直せば足りる
@@ -1013,10 +1237,13 @@ function update(dt) {
     if (enemies.length >= SPAWN_CAP) break;
     const r = rngW();
     let kind = "walker";
-    if (wave >= 5 && r < .05) kind = "bomber";
-    else if (wave >= 3 && r < .12) kind = "spitter";
-    else if (wave >= 3 && r < .20) kind = "brute";
-    else if (wave >= 2 && r < .40) kind = "runner";
+    if (wave >= 6 && r < .04) kind = "flyer";
+    else if (wave >= 5 && r < .08 && liveMason < 3) kind = "mason";
+    else if (wave >= 4 && r < .13 && liveBreak < 4) kind = "breaker";
+    else if (wave >= 5 && r < .17) kind = "bomber";
+    else if (wave >= 3 && r < .24 && liveSpit < 4 + wave) kind = "spitter";
+    else if (wave >= 3 && r < .31) kind = "brute";
+    else if (wave >= 2 && r < .55) kind = "runner";
     spawnEnemy(kind);
   }
   const bossWave = wave >= 7 ? true : wave % 2 === 0;
@@ -1056,9 +1283,11 @@ function update(dt) {
   }
   updateOrbits(dt);
 
+  updateProps(dt);
+
   // enemies
   const despawn = Math.hypot(mapW(), mapH()) + 300;   // 部屋が有限なので実質無効
-  let contact = 0;
+  let contact = 0, nSpit = 0, nMason = 0, nBreak = 0;
   for (const e of enemies) {
     let dx = P.x - e.x, dy = P.y - e.y;
     const d = Math.hypot(dx, dy) || 1;
@@ -1067,20 +1296,21 @@ function update(dt) {
     const wob = e.kind === "boss" ? 0 : Math.sin(e.ph) * .22;
     dx /= d; dy /= d;
     const T = TYPES[e.kind];
+    if (T.range) nSpit++; else if (T.mason) nMason++; else if (T.breaker) nBreak++;
     if (e.kind === "boss") {
       e.fireCd -= dt;
       if (e.fireCd <= 0) {                 // 周囲に弾をばら撒く。避けるしかない
         e.fireCd = 4.2;
         for (let k = 0; k < 12; k++) {
           const a = (k / 12) * 6.2832 + Math.random() * .2;
-          eshots.push({ x: e.x, y: e.y, vx: Math.cos(a) * 165, vy: Math.sin(a) * 165, dmg: e.dmg * .7, life: 4 });
+          eshots.push({ x: e.x, y: e.y, vx: Math.cos(a) * 142, vy: Math.sin(a) * 142, dmg: e.dmg * .32, life: 4 });
         }
         if (!reduceMotion) shake = Math.max(shake, 6);
       }
     }
     // 視線が通れば直進、通らなければ流れ場を下る＝壁を回り込んで最短で来る
     e.losT -= dt;
-    if (e.losT <= 0) { e.los = hasLOS(e.x, e.y, P.x, P.y); e.losT = .18 + Math.random() * .18; }
+    if (e.losT <= 0) { e.los = T.fly || hasLOS(e.x, e.y, P.x, P.y); e.losT = .18 + Math.random() * .18; }
     let mx, my;
     if (e.los) { mx = dx - dy * wob; my = dy + dx * wob; }
     else {
@@ -1094,7 +1324,9 @@ function update(dt) {
       e.thornT -= dt;
       if (e.thornT <= 0) { e.thornT = .5; damage(e, 7 * Math.pow(1.22, wave - 1)); if (e.dead) continue; }
     }
-    if (T.range) {
+    if (T.fly) {                       // 飛行：壁も床も無視する
+      e.x += mx * esp * dt; e.y += my * esp * dt;
+    } else if (T.range) {
       // 射手は間合いを取って撃つ。立ち止まると当たる＝動く理由になる
       const closing = d > T.range ? 1 : d < T.range * .75 ? -.7 : 0;
       moveEnt(e, (mx * closing - my * .5) * esp * dt, (my * closing + mx * .5) * esp * dt);
@@ -1105,6 +1337,24 @@ function update(dt) {
       }
     } else {
       moveEnt(e, mx * esp * dt, my * esp * dt);
+      // 壊し屋：進路の壊せる壁を削って道をこじ開ける
+      if (T.breaker) hitWall(e.x + mx * (e.r + 9), e.y + my * (e.r + 9), 36 * Math.pow(1.12, wave - 1) * dt);
+      // 石工：プレイヤーの近くに壁を建てて逃げ道を塞ぐ
+      if (T.mason) {
+        e.buildCd -= dt;
+        if (e.buildCd <= 0 && d < 340) {
+          e.buildCd = 4.5;
+          const a = Math.random() * 6.2832, rr = 60 + Math.random() * 70;
+          const tx = ((P.x + Math.cos(a) * rr) / TILE) | 0, ty = ((P.y + Math.sin(a) * rr) / TILE) | 0;
+          const ptx = (P.x / TILE) | 0, pty = (P.y / TILE) | 0;
+          if (inMap(tx, ty) && !solid[idx(tx, ty)] && !(tx === ptx && ty === pty)) {
+            solid[idx(tx, ty)] = 2;
+            wallHp[idx(tx, ty)] = 20 * Math.pow(1.16, wave - 1);
+            flowTile = -1;
+            parts.push({ ring: true, x: tx * TILE + 13, y: ty * TILE + 13, r0: 4, r1: 24, t: .3, max: .3 });
+          }
+        }
+      }
     }
     e.hit = Math.max(0, e.hit - dt);
     e.orbCd = Math.max(0, e.orbCd - dt);
@@ -1113,8 +1363,9 @@ function update(dt) {
       if (e.kind !== "boss") { const push = (e.r + P.r - d) * .9; e.x -= dx * push; e.y -= dy * push; }
     }
   }
+  liveSpit = nSpit; liveMason = nMason; liveBreak = nBreak;
   if (contact > 0) {
-    P.hp -= Math.min(contact, 16 * Math.pow(1.16, wave - 1)) * dt;
+    P.hp -= Math.min(contact, 13 * Math.pow(1.15, wave - 1)) * dt;
     P.hurtT = .18;
     if (P.hp <= 0) { gameOver(); return; }
   }
@@ -1124,7 +1375,11 @@ function update(dt) {
     b.life -= dt;
     if (b.life <= 0) { b.dead = true; continue; }
     b.x += b.vx * dt; b.y += b.vy * dt;
-    if (solidAt(b.x, b.y)) { b.dead = true; burst(b.x, b.y, 2, "#cbb894", 60); continue; }
+    if (hitProps(b.x, b.y, b.dmg, b.r)) { b.dead = true; continue; }
+    if (solidAt(b.x, b.y)) {
+      hitWall(b.x, b.y, b.dmg);
+      b.dead = true; burst(b.x, b.y, 2, "#cbb894", 60); continue;
+    }
     const cx = (b.x / CELL) | 0, cy = (b.y / CELL) | 0;
     for (let ox = -1; ox <= 1 && !b.dead; ox++) for (let oy = -1; oy <= 1 && !b.dead; oy++) {
       const cell = grid.get((cx + ox) + "," + (cy + oy));
@@ -1195,8 +1450,9 @@ function update(dt) {
 function draw() {
   const sx = shake ? rand(-shake, shake) : 0, sy = shake ? rand(-shake, shake) : 0;
   let camX = P.x - W / 2 + sx, camY = P.y - H / 2 + sy;
-  camX = mapW() <= W ? (mapW() - W) / 2 : Math.max(0, Math.min(mapW() - W, camX));
-  camY = mapH() <= H ? (mapH() - H) / 2 : Math.max(0, Math.min(mapH() - H, camY));
+  const MAR = 90;                       // 端でもプレイヤーが画面の縁に貼り付かないように
+  camX = mapW() <= W ? (mapW() - W) / 2 : Math.max(-MAR, Math.min(mapW() - W + MAR, camX));
+  camY = mapH() <= H ? (mapH() - H) / 2 : Math.max(-MAR, Math.min(mapH() - H + MAR, camY));
 
   ctx.save();
   ctx.translate(-camX, -camY);
@@ -1225,15 +1481,23 @@ function draw() {
         if (!inMap(tx + 1, ty) || ground[idx(tx + 1, ty)] !== f) ctx.fillRect(x + TILE - 2, y, 2, TILE);
       }
       if (solid[i]) {
-        ctx.fillStyle = "#332c22";
+        const brk = solid[i] === 2;
+        ctx.fillStyle = brk ? "#4a3520" : "#332c22";
         ctx.fillRect(x, y, TILE, TILE);
-        ctx.fillStyle = "#514637";
+        ctx.fillStyle = brk ? "#7d5c32" : "#514637";
         ctx.fillRect(x, y, TILE, 6);
+        if (brk) {
+          ctx.fillStyle = "rgba(20,14,8,.55)";
+          ctx.fillRect(x + 5, y + 9, TILE - 10, 2);
+          ctx.fillRect(x + 9, y + 15, 3, TILE - 18);
+        }
         ctx.fillStyle = "rgba(0,0,0,.3)";
         ctx.fillRect(x, y + TILE - 5, TILE, 5);
       }
     }
   }
+
+  drawProps();
 
   for (const g of drops) {
     ctx.fillStyle = g.coin ? "#ffc53d" : "#46e0d2";
@@ -1548,7 +1812,7 @@ el("goBtn").onclick = () => {
   const spot = buildRoom(wave);          // ウェーブごとに部屋を組み直す
   P.x = spot.x; P.y = spot.y; P.vx = P.vy = 0;
   rebuildFlow();
-  P.hp = Math.min(P.s.hp, P.hp + P.s.hp * .08);   // ウェーブ間に少しだけ回復
+  P.hp = Math.min(P.s.hp, P.hp + P.s.hp * .15);   // ウェーブ間の回復
   banner("WAVE " + wave);
   paused = pendingLevels > 0;
   if (pendingLevels > 0) openLevelUp();
@@ -1803,6 +2067,7 @@ window.__horde = {
   get items() { return P.items.join(","); },
   get bank() { return save.bank; },
   get seed() { return runSeed; },
+  get props() { return props.map(p => p.kind).join(","); },
   // 自動テスト用：近くの脅威から離れる向きを返す
   get avoid() {
     let ax = 0, ay = 0;
@@ -1816,6 +2081,15 @@ window.__horde = {
       const dx = P.x - q.x, dy = P.y - q.y, d2 = dx * dx + dy * dy;
       if (d2 > 150 * 150 || d2 === 0) continue;
       ax += dx / d2 * .5; ay += dy / d2 * .5;
+    }
+    // 壁からも離れる（テスト用ボットが角に詰まらないように）
+    const pt = { x: (P.x / TILE) | 0, y: (P.y / TILE) | 0 };
+    for (let oy = -2; oy <= 2; oy++) for (let ox = -2; ox <= 2; ox++) {
+      const tx = pt.x + ox, ty = pt.y + oy;
+      if (!inMap(tx, ty) || !solid[idx(tx, ty)]) continue;
+      const dx = P.x - (tx * TILE + 13), dy = P.y - (ty * TILE + 13);
+      const d2 = dx * dx + dy * dy || 1;
+      ax += dx / d2 * 6; ay += dy / d2 * 6;
     }
     const m = Math.hypot(ax, ay) || 1;
     return { x: ax / m, y: ay / m };
