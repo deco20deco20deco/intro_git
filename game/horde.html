@@ -293,6 +293,8 @@ const WAVE_LEN = 30;
 const SPAWN_CAP = 900;
 const CELL = 26;
 const SLOTS = 6;
+const BUYS_PER_SHOP = 3;      // 1回の補給で買える数
+const ITEM_MAX = 5;           // 同じアイテムを積める上限（無制限だと24個積まれて壊れる）
 const WMAX = 5;               // 武器の最大レベル（ここで進化可能に）
 
 const TYPES = {
@@ -333,7 +335,7 @@ const inMap = (tx, ty) => tx >= 0 && ty >= 0 && tx < MW && ty < MH;
 function solidAt(x, y) {
   const tx = (x / TILE) | 0, ty = (y / TILE) | 0;
   if (!inMap(tx, ty)) return true;
-  return solid[idx(tx, ty)] === 1;
+  return solid[idx(tx, ty)] !== 0;   // 1=岩 2=壊せる壁。どちらも通れない
 }
 function floorAt(x, y) {
   const tx = (x / TILE) | 0, ty = (y / TILE) | 0;
@@ -757,7 +759,7 @@ function drawProps() {
 // --- weapons ---------------------------------------------------------
 const WEAPONS = {
   bolt:  { name: "ボルト",       glyph: "BLT", price: 12, kind: "shot",
-           desc: "最寄りの敵へ単発を撃つ", base: { dmg: 11, rate: .38, spd: 560, pierce: 1, shots: 1, spread: .14 } },
+           desc: "最寄りの敵へ単発を撃つ", base: { dmg: 13, rate: .38, spd: 560, pierce: 1, shots: 1, spread: .14 } },
   shard: { name: "シャード",     glyph: "SHD", price: 14, kind: "shot",
            desc: "前方に散弾。近いほど効く", base: { dmg: 6, rate: .74, spd: 430, pierce: 0, shots: 5, spread: .34, life: .38 } },
   nova:  { name: "ノヴァ",       glyph: "NOV", price: 16, kind: "nova",
@@ -782,27 +784,27 @@ const WEAPONS = {
 
 // --- items (passives) — ★印は進化の鍵 --------------------------------
 const ITEMS = [
-  { id: "grind",  name: "研磨石",       rar: 0, desc: "攻撃力 +12%",            apply: s => s.dmgAdd += .12 },
-  { id: "spring", name: "反発ばね",     rar: 0, desc: "連射速度 +10%",          apply: s => s.rateAdd += .10 },
-  { id: "boots",  name: "軽量ブーツ",   rar: 0, desc: "移動速度 +8%",           apply: s => s.moveAdd += .08 },
-  { id: "plate",  name: "増設装甲",     rar: 0, desc: "最大HP +30",             apply: s => s.hp += 30 },
+  { id: "grind",  name: "研磨石",       rar: 0, desc: "攻撃力 +20%",            apply: s => s.dmgAdd += .20 },
+  { id: "spring", name: "反発ばね",     rar: 0, desc: "連射速度 +16%",          apply: s => s.rateAdd += .16 },
+  { id: "boots",  name: "軽量ブーツ",   rar: 0, desc: "移動速度 +12%",          apply: s => s.moveAdd += .12 },
+  { id: "plate",  name: "増設装甲",     rar: 0, desc: "最大HP +48",             apply: s => s.hp += 48 },
   { id: "coil",   name: "回収コイル",   rar: 0, desc: "回収範囲 +40%",          apply: s => s.magnet *= 1.4 },
-  { id: "scope",  name: "照準器",       rar: 1, desc: "クリティカル率 +8%",     apply: s => s.crit += .08 },
-  { id: "fang",   name: "牙の護符",     rar: 1, desc: "クリティカル倍率 +40%",  apply: s => s.critDmg += .4 },
+  { id: "scope",  name: "照準器",       rar: 1, desc: "クリティカル率 +12%",    apply: s => s.crit = Math.min(.6, s.crit + .12) },
+  { id: "fang",   name: "牙の護符",     rar: 1, desc: "クリティカル倍率 +40%",  apply: s => s.critDmg = Math.min(3, s.critDmg + .4) },
   { id: "leech",  name: "吸血チューブ", rar: 1, desc: "10体倒すごとに +1 回復", apply: s => s.leech += 1 },
   { id: "sickle", name: "収穫の鎌",     rar: 1, desc: "ウェーブ終了時 +12 ¤",   apply: s => s.harvest += 12 },
   { id: "clover", name: "四つ葉",       rar: 1, desc: "レア出現率アップ",       apply: s => s.luck += 1 },
-  { id: "core",   name: "反応炉",       rar: 2, desc: "攻撃力 +25% / HP -10",   apply: s => { s.dmgAdd += .25; s.hp -= 10; } },
+  { id: "core",   name: "反応炉",       rar: 2, desc: "攻撃力 +40% / HP -10",   apply: s => { s.dmgAdd += .40; s.hp -= 10; } },
   { id: "rail",   name: "加速レール ★", rar: 2, desc: "弾速 +30%（レイザー進化）", apply: s => s.bspd *= 1.3 },
   { id: "drum",   name: "拡散ドラム ★", rar: 2, desc: "弾数 +1（シャード進化）",   apply: s => s.shots += 1 },
   { id: "reso",   name: "共鳴コア ★",   rar: 2, desc: "範囲 +25%（ノヴァ進化）",   apply: s => s.areaAdd += .25 },
   { id: "bear",   name: "重装軸受 ★",   rar: 2, desc: "刃の速度 +40%（オービット進化）", apply: s => s.orbSpd *= 1.4 },
-  { id: "engine", name: "過給機",       rar: 3, desc: "連射速度 +22% / 移動 +10%", apply: s => { s.rateAdd += .22; s.moveAdd += .10; } },
+  { id: "engine", name: "過給機",       rar: 3, desc: "連射速度 +34% / 移動 +14%", apply: s => { s.rateAdd += .34; s.moveAdd += .14; } },
   { id: "titan",  name: "巨人の心臓",   rar: 3, desc: "最大HP +90 / 毎秒 +0.7 回復", apply: s => { s.hp += 90; s.regen += .7; } },
 ];
 const RAR_NAME = ["COMMON", "RARE", "EPIC", "LEGEND"];
 const RAR_CLASS = ["c", "r", "e", "l"];
-const RAR_PRICE = [11, 20, 34, 56];
+const RAR_PRICE = [9, 16, 27, 44];
 
 // --- evolutions: 武器MAX + 鍵アイテム → 別武器 ------------------------
 const EVOLUTIONS = [
@@ -860,7 +862,7 @@ loadSave();
 // =====================================================================
 let P, enemies, bullets, beams, eshots, drops, parts, texts, grid;
 let time, wave, waveT, kills, coins, spawnAcc, shake, boss, hitStop;
-let running, over, paused, rerolls, rerollsLeft, offers, bossSpawned;
+let running, over, paused, rerolls, rerollsLeft, buysLeft, offers, bossSpawned;
 let runSeed = "-", dailyMode = false, rngW = Math.random;
 let liveSpit = 0, liveMason = 0, liveBreak = 0;   // 種類ごとの生存数（湧きの上限に使う）
 
@@ -900,7 +902,7 @@ function resetGame(seed, daily) {
   time = 0; wave = 1; waveT = WAVE_LEN; kills = 0; spawnAcc = 0; shake = 0;
   hitStop = 0; boss = null; bossSpawned = false; over = false; paused = false;
   coins = 15 * tlv("trader");
-  rerolls = 0; rerollsLeft = 3 + tlv("gambler"); offers = [];
+  rerolls = 0; rerollsLeft = 3 + tlv("gambler"); buysLeft = BUYS_PER_SHOP; offers = [];
 }
 
 // =====================================================================
@@ -1071,6 +1073,7 @@ function updateOrbits(dt) {
 //  evolution
 // =====================================================================
 function hasItem(id) { return P.items.includes(id); }
+function countItem(id) { let n = 0; for (const x of P.items) if (x === id) n++; return n; }
 function checkEvolution() {
   for (const ev of EVOLUTIONS) {
     const w = P.weapons.find(x => x.id === ev.from && x.lv >= WMAX);
@@ -1198,17 +1201,24 @@ function spawnEnemy(kind) {
   const e = {
     x: p.x, y: p.y, kind, r: t.r,
     hp: t.hp * scale, maxHp: t.hp * scale,
-    spd: t.spd * Math.min(1.9, 1 + (wave - 1) * .05) * randW(.9, 1.1),
-    dmg: t.dmg * Math.pow(1.13, wave - 1),
+    spd: t.spd * Math.min(2.1, 1 + (wave - 1) * .06) * randW(.9, 1.1),
+    dmg: t.dmg * Math.pow(1.13, wave - 1) * Math.pow(1.06, Math.max(0, wave - 6)),
     xp: t.xp, hit: 0, orbCd: 0, ph: Math.random() * 6.28,
     armor: t.armor || 1, fireCd: randW(.4, 2.2), los: true, losT: randW(0, .3), thornT: .5, buildCd: randW(2, 5),
   };
+  // ウェーブ8以降はエリートが混じる。硬くて痛い＝「削り切る」だけでは進めない
+  if (wave >= 8 && kind !== "boss" && rngW() < .12) {
+    e.elite = true;
+    e.hp = e.maxHp = e.maxHp * 4.5;
+    e.r *= 1.35; e.dmg *= 1.6; e.xp *= 4;
+    e.spd *= .92;
+  }
   enemies.push(e);
   return e;
 }
 function spawnBoss() {
   const b = spawnEnemy("boss");
-  b.hp = b.maxHp = TYPES.boss.hp * Math.pow(1.33, wave - 1);
+  b.hp = b.maxHp = TYPES.boss.hp * Math.pow(1.4, wave - 1);
   boss = b;
   banner("BOSS");
   if (!reduceMotion) shake = 14;
@@ -1217,7 +1227,7 @@ function spawnRate() {
   // 湧き穴が生きている分だけ、空からの湧きを減らす（総量が跳ねないように）
   let holes = 0;
   for (const p of props) if (!p.dead && p.kind === "spawner") holes++;
-  return Math.max(1.5, 2.2 + wave * 1.9 - holes * 1.5);
+  return Math.max(1.2, 1.7 + wave * 1.35 - holes * 1.2);
 }
 
 function endWave() {
@@ -1457,7 +1467,7 @@ function update(dt) {
   }
   liveSpit = nSpit; liveMason = nMason; liveBreak = nBreak;
   if (contact > 0) {
-    P.hp -= Math.min(contact, 13 * Math.pow(1.15, wave - 1)) * dt;
+    P.hp -= Math.min(contact, 13 * Math.pow(1.14, wave - 1) * Math.pow(1.07, Math.max(0, wave - 6))) * dt;
     P.hurtT = .18;
     if (P.hp <= 0) { gameOver(); return; }
   }
@@ -1622,8 +1632,10 @@ function draw() {
     ctx.fillRect(g.x - 2.5, g.y - 2.5, 5, 5);
   }
 
-  ctx.strokeStyle = "rgba(70,224,210,.14)"; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.arc(P.x, P.y, P.s.magnet, 0, 6.2832); ctx.stroke();
+  if (P.s.magnet < 240) {                 // 大きくなると画面を横切る線に見えるので出さない
+    ctx.strokeStyle = "rgba(70,224,210,.14)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(P.x, P.y, P.s.magnet, 0, 6.2832); ctx.stroke();
+  }
 
   ctx.fillStyle = "rgba(60,40,18,.22)";
   for (const e of enemies) {
@@ -1638,18 +1650,23 @@ function draw() {
     if (e.kind === "boss") {
       ctx.strokeStyle = "#c6f57a"; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(e.x, e.y, e.r + 4, 0, 6.2832); ctx.stroke();
+    } else if (e.elite) {
+      ctx.strokeStyle = "#ffc53d"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(e.x, e.y, e.r + 3, 0, 6.2832); ctx.stroke();
     }
   }
 
   // beams
   for (const b of beams) {
     const k = b.t / b.max;
-    ctx.strokeStyle = `rgba(143,245,234,${k * .85})`;
-    ctx.lineWidth = b.width * k;
-    ctx.beginPath();
-    ctx.moveTo(b.x, b.y);
-    ctx.lineTo(b.x + Math.cos(b.a) * b.len, b.y + Math.sin(b.a) * b.len);
-    ctx.stroke();
+    const ex = b.x + Math.cos(b.a) * b.len, ey = b.y + Math.sin(b.a) * b.len;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = `rgba(70,224,210,${k * .35})`;      // 外側の光
+    ctx.lineWidth = b.width * (.6 + k * 1.1);
+    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.strokeStyle = `rgba(220,255,252,${k})`;           // 芯
+    ctx.lineWidth = Math.max(2, b.width * k * .55);
+    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(ex, ey); ctx.stroke();
   }
 
   // enemy shots
@@ -1804,7 +1821,7 @@ function rarityRoll(rs) {
   return 0;
 }
 function priceOf(offer) {
-  const infl = 1 + (wave - 1) * .22;
+  const infl = 1 + (wave - 1) * .16;
   if (offer.type === "weapon") {
     const owned = P.weapons.find(w => w.id === offer.id);
     const base = WEAPONS[offer.id].price;
@@ -1823,7 +1840,8 @@ function rollOffer(rs) {
     if (poolW.length) return { type: "weapon", id: pickR(rs, poolW) };
   }
   const rar = rarityRoll(rs);
-  let poolI = ITEMS.filter(i => i.rar === rar);
+  let poolI = ITEMS.filter(i => i.rar === rar && countItem(i.id) < ITEM_MAX);
+  if (!poolI.length) poolI = ITEMS.filter(i => countItem(i.id) < ITEM_MAX);
   if (!poolI.length) poolI = ITEMS;
   return { type: "item", id: pickR(rs, poolI).id };
 }
@@ -1842,7 +1860,7 @@ function rollOffers() {
 }
 function renderShop() {
   el("shopCoins").textContent = coins;
-  el("shopTitle").textContent = `WAVE ${wave} 終了 ─ 補給`;
+  el("shopTitle").textContent = `WAVE ${wave} 終了 ─ 補給（あと${buysLeft}つ買える）`;
   const cost = rerollCost();
   el("rerollBtn").textContent = rerollsLeft > 0 ? `引き直し ${cost}¤（残り${rerollsLeft}）` : "引き直し切れ";
   el("rerollBtn").disabled = rerollsLeft <= 0 || cost > coins;
@@ -1853,7 +1871,7 @@ function renderShop() {
     const price = priceOf(o);
     const b = document.createElement("button");
     b.className = "card";
-    b.disabled = price > coins;
+    b.disabled = price > coins || buysLeft <= 0;
     if (o.type === "weapon") {
       const d = WEAPONS[o.id], owned = P.weapons.find(w => w.id === o.id);
       const key = EVOLUTIONS.find(e => e.from === o.id);
@@ -1865,8 +1883,10 @@ function renderShop() {
     } else {
       const it = ITEMS.find(i => i.id === o.id);
       b.className += " b" + RAR_CLASS[it.rar];
+      const owned = countItem(it.id);
+      b.disabled = b.disabled || owned >= ITEM_MAX;
       b.innerHTML = `<span class="glyph r${RAR_CLASS[it.rar]}">◆</span>
-        <span><h3>${it.name}</h3><small>${it.desc}</small></span>
+        <span><h3>${it.name} <span class="tag">${owned}/${ITEM_MAX}</span></h3><small>${it.desc}</small></span>
         <span class="tail"><span class="price">${price}¤</span><br><span class="tag r${RAR_CLASS[it.rar]}">${RAR_NAME[it.rar]}</span></span>`;
     }
     b.onclick = () => buy(idx);
@@ -1875,6 +1895,11 @@ function renderShop() {
   if (!box.children.length) {
     const p = document.createElement("p");
     p.textContent = "売り切れ。引き直すか、次のウェーブへ。";
+    box.appendChild(p);
+  }
+  if (buysLeft <= 0) {
+    const p = document.createElement("p");
+    p.textContent = "今回の補給はここまで。次のウェーブへ。";
     box.appendChild(p);
   }
   drawSlots();
@@ -1900,14 +1925,15 @@ function renderShop() {
 function buy(idx) {
   const o = offers[idx];
   const price = priceOf(o);
-  if (price > coins || o.bought) return;
-  coins -= price; o.bought = true;
+  if (price > coins || o.bought || buysLeft <= 0) return;
+  coins -= price; o.bought = true; buysLeft--;
   if (o.type === "weapon") {
     const owned = P.weapons.find(w => w.id === o.id);
     if (owned) owned.lv = Math.min(WMAX, owned.lv + 1);
     else if (P.weapons.length < SLOTS) addWeapon(o.id);
   } else {
     const it = ITEMS.find(i => i.id === o.id);
+    if (countItem(it.id) >= ITEM_MAX) { coins += price; o.bought = false; buysLeft++; return; }
     P.items.push(it.id);
     it.apply(P.s);
     P.hp = Math.min(P.s.hp, P.hp);
@@ -1919,6 +1945,7 @@ function openShop() {
   paused = true;
   rerolls = 0;
   rerollsLeft = 3 + tlv("gambler");     // 補給1回につき引き直せる回数
+  buysLeft = BUYS_PER_SHOP;             // 買えるのは2つまで＝「どれを取るか」が発生する
   rollOffers();
   el("shopScreen").classList.add("on");
 }
@@ -2000,13 +2027,18 @@ function buildLabels() {
   }));
   return { ws, its };
 }
-function chipRow(g, list, x, y, maxW, size) {
+function chipRow(g, list, x, y, maxW, size, limitY) {
   let cx = x, cy = y;
   g.font = `600 ${size}px "Chakra Petch", sans-serif`;
   g.textAlign = "left"; g.textBaseline = "middle";
   for (const it of list) {
     const w = g.measureText(it.t).width + 34;
     if (cx + w > x + maxW) { cx = x; cy += size + 26; }
+    if (limitY && cy + size > limitY) {          // 枠を越えるぶんは切る
+      g.fillStyle = "#a2947f";
+      g.fillText("…", cx + 6, cy + (size + 18) / 2);
+      break;
+    }
     g.fillStyle = "#141210"; g.fillRect(cx, cy, w, size + 18);
     g.strokeStyle = it.evo ? "#ffc53d" : "#4a3d2d"; g.lineWidth = 2;
     g.strokeRect(cx + 1, cy + 1, w - 2, size + 16);
@@ -2019,7 +2051,7 @@ function chipRow(g, list, x, y, maxW, size) {
 async function buildCard(res) {
   try { await document.fonts.ready; } catch (e) {}
   const c = document.createElement("canvas");
-  c.width = 1080; c.height = 1350;
+  c.width = 1080; c.height = 1500;
   const g = c.getContext("2d");
 
   g.fillStyle = "#1f1b16"; g.fillRect(0, 0, 1080, 1350);
@@ -2064,16 +2096,16 @@ async function buildCard(res) {
   g.textBaseline = "alphabetic";
   g.fillText("BUILD", 64, 980);
   let y = chipRow(g, L.ws, 64, 1000, 952, 34);
-  y = chipRow(g, L.its.map(o => ({ t: o.t, evo: false, dim: true })), 64, y + 14, 952, 26);
+  y = chipRow(g, L.its.map(o => ({ t: o.t, evo: false, dim: true })), 64, y + 14, 952, 26, 1390);
 
   // フッター
-  g.fillStyle = "#4a3d2d"; g.fillRect(64, 1272, 952, 2);
+  g.fillStyle = "#4a3d2d"; g.fillRect(64, 1422, 952, 2);
   g.fillStyle = "#a2947f"; g.font = '700 24px "Chakra Petch", sans-serif';
   g.textBaseline = "middle";
-  g.fillText(res.daily ? "同じシードで誰でも挑戦できる" : "SEED を共有すれば同じ盤面で遊べる", 64, 1316);
+  g.fillText(res.daily ? "同じシードで誰でも挑戦できる" : "SEED を共有すれば同じ盤面で遊べる", 64, 1462);
   g.textAlign = "right";
   g.fillStyle = "#e3c68b"; g.font = '400 26px "Bungee", sans-serif';
-  g.fillText(res.seed, 1016, 1316);
+  g.fillText(res.seed, 1016, 1462);
 
   cardCanvas = c;
   c.toBlob(b => {
