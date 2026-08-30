@@ -922,16 +922,19 @@ function wstat(w) {
   }
   return o;
 }
+// モノを撃ちに行く距離。武器の射程とは別に、短く持つ（遠くのドラムを勝手に消費しない）
+const PROP_REACH = { barrel: 170, spawner: 205 };
 // 射線が通る中で最寄りの敵。近い順に数体だけ視線判定する
 const CAND = 10;
 const candE = new Array(CAND), candD = new Float64Array(CAND);
 function nearestEnemy(maxD) {
-  // ドラムと湧き穴は敵より優先。射程内で射線が通れば無条件に狙う
-  let bestProp = null, bpd = maxD * maxD;
+  // ドラムと湧き穴は敵より優先。ただし武器の射程ではなく「近づいたら」で判定する
+  let bestProp = null, bpd = Infinity;
   for (const pr of props) {
     if (pr.dead || (pr.kind !== "barrel" && pr.kind !== "spawner")) continue;
+    const reach = PROP_REACH[pr.kind];
     const d = (pr.x - P.x) ** 2 + (pr.y - P.y) ** 2;
-    if (d >= bpd) continue;
+    if (d > reach * reach || d >= bpd) continue;
     if (!hasLOS(P.x, P.y, pr.x, pr.y)) continue;
     bpd = d; bestProp = pr;
   }
