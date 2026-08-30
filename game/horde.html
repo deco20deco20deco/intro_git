@@ -55,6 +55,11 @@
   #bossBar{height:9px;border-color:#2a0f0d;background:#2a0f0d}
   #bossFill{background:linear-gradient(180deg,#ff8a5c,#8e1f1a)}
   #bossName{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#e6a08c}
+  #escWrap{display:none;gap:3px;flex-direction:column}
+  #escWrap.on{display:flex}
+  #escBar{height:8px;border-color:#2b2410;background:#2b2410}
+  #escFill{background:linear-gradient(180deg,#ffe08a,#c9a227)}
+  #escName{font-size:10px;letter-spacing:.1em;color:#e0c07a}
   #slots{display:flex;gap:4px;margin-top:auto}
   .slot{
     width:34px;height:34px;display:grid;place-items:center;background:rgba(12,10,8,.6);
@@ -158,6 +163,10 @@
     <div id="bossWrap">
       <div id="bossName">ROTLORD</div>
       <div class="bar" id="bossBar"><i id="bossFill"></i></div>
+    </div>
+    <div id="escWrap">
+      <div id="escName">護衛対象 — ウェーブ終了まで守れ</div>
+      <div class="bar" id="escBar"><i id="escFill"></i></div>
     </div>
     <div id="slots"></div>
     <div id="banner"></div>
@@ -551,7 +560,7 @@ function placeProps(w, r, home) {
     if (p) props.push({ kind: "point", x: p.x, y: p.y, r: 76, fill: 0 });
   }
   if (w >= 4 && w % 4 === 0) {                      // 護衛対象：置き去りにできない
-    const hp = 260 * sc;
+    const hp = 700 * sc;
     props.push({ kind: "escort", x: home.x + 40, y: home.y + 40, r: 15, hp, maxHp: hp, spd: 74 });
   }
 }
@@ -589,15 +598,15 @@ function supplyDrop() {
     if (p) props.push({ kind: "point", x: p.x, y: p.y, r: 76, fill: 0 });
   }
   if (wave >= 4 && wave % 4 === 0 && !props.some(p => p.kind === "escort" && !p.dead)) {
-    const hp = 260 * Math.pow(1.27, wave - 1);
-    props.push({ kind: "escort", x: P.x + 40, y: P.y + 40, r: 15, hp, maxHp: hp, spd: 74 });
+    const hp = 700 * Math.pow(1.27, wave - 1);
+    props.push({ kind: "escort", x: P.x + 40, y: P.y + 40, r: 15, hp, maxHp: hp, spd: 82, calm: 0 });
   }
 }
 
 // 外周の崩落。マップは1枚のまま、使える範囲だけがウェーブごとに狭くなる
 function collapseR() {
   const maxR = (Math.min(MW, MH) * TILE) / 2 - TILE * 2;
-  return Math.max(TILE * 12, maxR * (1 - .04 * (wave - 1)));
+  return Math.max(TILE * 12, maxR * (1 - .045 * Math.max(0, wave - 3)));
 }
 
 function damageProp(p, dmg) {
@@ -617,7 +626,7 @@ function barrelBlast(p) {
   burst(p.x, p.y, 26, "#ffb347", 260);
   if (!reduceMotion) { shake = Math.max(shake, 12); hitStop = Math.max(hitStop, .05); }
   for (const e of enemies) {
-    if (!e.dead && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 < R * R) damage(e, dmgE);
+    if (!e.dead && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 < R * R && hasLOS(p.x, p.y, e.x, e.y)) damage(e, dmgE);
   }
   for (const o of props) {                          // ドラムは連鎖する
     if (o !== p && !o.dead && o.kind === "barrel" && (o.x - p.x) ** 2 + (o.y - p.y) ** 2 < R * R) damageProp(o, 999);
@@ -678,7 +687,14 @@ function updateProps(dt) {
           if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 < rr * rr) bite += e.dmg;
         }
       }
-      if (bite > 0) damageProp(p, Math.min(bite, 46 * Math.pow(1.1, wave - 1)) * dt);
+      if (bite > 0) {
+        damageProp(p, Math.min(bite, 26 * Math.pow(1.1, wave - 1)) * dt);
+        p.calm = 0;
+      } else {
+        // 敵を引き剥がせば自力で直る＝「引き離す」が正解になる
+        p.calm += dt;
+        if (p.calm > 1.5) p.hp = Math.min(p.maxHp, p.hp + p.maxHp * .06 * dt);
+      }
     }
   }
   if (pointCd > 0) {                                 // 制圧ポイントは少ししたら別の場所に湧く
@@ -694,7 +710,7 @@ function updateProps(dt) {
 // 弾・爆発がモノに当たるかを見る（数が少ないので総当たりで足りる）
 function hitProps(x, y, dmg, rad) {
   for (const p of props) {
-    if (p.dead || p.kind === "point") continue;
+    if (p.dead || p.kind === "point" || p.kind === "escort") continue;   // 味方は撃たない
     const rr = p.r + (rad || 0);
     if ((p.x - x) ** 2 + (p.y - y) ** 2 < rr * rr) { damageProp(p, dmg); return true; }
   }
@@ -766,9 +782,9 @@ const WEAPONS = {
 
 // --- items (passives) — ★印は進化の鍵 --------------------------------
 const ITEMS = [
-  { id: "grind",  name: "研磨石",       rar: 0, desc: "攻撃力 +12%",            apply: s => s.dmg *= 1.12 },
-  { id: "spring", name: "反発ばね",     rar: 0, desc: "連射速度 +10%",          apply: s => s.rate *= .90 },
-  { id: "boots",  name: "軽量ブーツ",   rar: 0, desc: "移動速度 +8%",           apply: s => s.move *= 1.08 },
+  { id: "grind",  name: "研磨石",       rar: 0, desc: "攻撃力 +12%",            apply: s => s.dmgAdd += .12 },
+  { id: "spring", name: "反発ばね",     rar: 0, desc: "連射速度 +10%",          apply: s => s.rateAdd += .10 },
+  { id: "boots",  name: "軽量ブーツ",   rar: 0, desc: "移動速度 +8%",           apply: s => s.moveAdd += .08 },
   { id: "plate",  name: "増設装甲",     rar: 0, desc: "最大HP +30",             apply: s => s.hp += 30 },
   { id: "coil",   name: "回収コイル",   rar: 0, desc: "回収範囲 +40%",          apply: s => s.magnet *= 1.4 },
   { id: "scope",  name: "照準器",       rar: 1, desc: "クリティカル率 +8%",     apply: s => s.crit += .08 },
@@ -776,12 +792,12 @@ const ITEMS = [
   { id: "leech",  name: "吸血チューブ", rar: 1, desc: "10体倒すごとに +1 回復", apply: s => s.leech += 1 },
   { id: "sickle", name: "収穫の鎌",     rar: 1, desc: "ウェーブ終了時 +12 ¤",   apply: s => s.harvest += 12 },
   { id: "clover", name: "四つ葉",       rar: 1, desc: "レア出現率アップ",       apply: s => s.luck += 1 },
-  { id: "core",   name: "反応炉",       rar: 2, desc: "攻撃力 +25% / HP -10",   apply: s => { s.dmg *= 1.25; s.hp -= 10; } },
+  { id: "core",   name: "反応炉",       rar: 2, desc: "攻撃力 +25% / HP -10",   apply: s => { s.dmgAdd += .25; s.hp -= 10; } },
   { id: "rail",   name: "加速レール ★", rar: 2, desc: "弾速 +30%（レイザー進化）", apply: s => s.bspd *= 1.3 },
   { id: "drum",   name: "拡散ドラム ★", rar: 2, desc: "弾数 +1（シャード進化）",   apply: s => s.shots += 1 },
-  { id: "reso",   name: "共鳴コア ★",   rar: 2, desc: "範囲 +25%（ノヴァ進化）",   apply: s => s.area *= 1.25 },
+  { id: "reso",   name: "共鳴コア ★",   rar: 2, desc: "範囲 +25%（ノヴァ進化）",   apply: s => s.areaAdd += .25 },
   { id: "bear",   name: "重装軸受 ★",   rar: 2, desc: "刃の速度 +40%（オービット進化）", apply: s => s.orbSpd *= 1.4 },
-  { id: "engine", name: "過給機",       rar: 3, desc: "連射速度 +22% / 移動 +10%", apply: s => { s.rate *= .78; s.move *= 1.1; } },
+  { id: "engine", name: "過給機",       rar: 3, desc: "連射速度 +22% / 移動 +10%", apply: s => { s.rateAdd += .22; s.moveAdd += .10; } },
   { id: "titan",  name: "巨人の心臓",   rar: 3, desc: "最大HP +90 / 毎秒 +0.7 回復", apply: s => { s.hp += 90; s.regen += .7; } },
 ];
 const RAR_NAME = ["COMMON", "RARE", "EPIC", "LEGEND"];
@@ -799,14 +815,14 @@ const EVOLUTIONS = [
 
 // --- level-up picks (小さいステータス、無限に重なる) ------------------
 const LEVELUPS = [
-  { g: "DMG", name: "攻撃力",     desc: "+10%",      apply: s => s.dmg *= 1.10 },
-  { g: "RPM", name: "連射",       desc: "+8%",       apply: s => s.rate *= .92 },
-  { g: "SPD", name: "移動速度",   desc: "+6%",       apply: s => s.move *= 1.06 },
+  { g: "DMG", name: "攻撃力",     desc: "+8%",       apply: s => s.dmgAdd += .08 },
+  { g: "RPM", name: "連射",       desc: "+6%",       apply: s => s.rateAdd += .06 },
+  { g: "SPD", name: "移動速度",   desc: "+3%",       apply: s => s.moveAdd += .03 },
   { g: "HP",  name: "最大HP",     desc: "+18／全快寄り", apply: s => { s.hp += 18; } },
   { g: "REG", name: "自己修復",   desc: "毎秒 +0.25", apply: s => s.regen += .25 },
   { g: "MAG", name: "回収範囲",   desc: "+18%",      apply: s => s.magnet *= 1.18 },
-  { g: "CRT", name: "クリ率",     desc: "+4%",       apply: s => s.crit += .04 },
-  { g: "ARE", name: "範囲",       desc: "+10%",      apply: s => s.area *= 1.10 },
+  { g: "CRT", name: "クリ率",     desc: "+4%",       apply: s => s.crit = Math.min(.6, s.crit + .04) },
+  { g: "ARE", name: "範囲",       desc: "+8%",       apply: s => s.areaAdd += .08 },
   { g: "¤",   name: "金運",       desc: "コイン +12%", apply: s => s.fortune *= 1.12 },
 ];
 
@@ -818,7 +834,7 @@ const TALENTS = [
   { id: "fortune", name: "金運",       desc: "コイン獲得 +8%",    max: 8,  cost: l => 34 + l * 26 },
   { id: "scholar", name: "戦訓",       desc: "経験値 +6%",        max: 8,  cost: l => 34 + l * 26 },
   { id: "trader",  name: "取引",       desc: "開始コイン +15",    max: 6,  cost: l => 45 + l * 35 },
-  { id: "gambler", name: "博打",       desc: "無料の引き直し +1", max: 3,  cost: l => 80 + l * 90 },
+  { id: "gambler", name: "博打",       desc: "引き直せる回数 +1", max: 3,  cost: l => 80 + l * 90 },
 ];
 
 // ---------- persistence ----------
@@ -844,15 +860,17 @@ loadSave();
 // =====================================================================
 let P, enemies, bullets, beams, eshots, drops, parts, texts, grid;
 let time, wave, waveT, kills, coins, spawnAcc, shake, boss, hitStop;
-let running, over, paused, rerolls, freeRerolls, offers, bossSpawned;
+let running, over, paused, rerolls, rerollsLeft, offers, bossSpawned;
 let runSeed = "-", dailyMode = false, rngW = Math.random;
 let liveSpit = 0, liveMason = 0, liveBreak = 0;   // 種類ごとの生存数（湧きの上限に使う）
 
 function baseStats() {
   return {
-    dmg: 1, rate: 1, move: 1, hp: 120, regen: 0, magnet: 74,
+    dmg: 1, rate: 1, move: 1, hp: 140, regen: 0, magnet: 74,
     crit: .05, critDmg: 1.5, leech: 0, harvest: 0, luck: 0,
     area: 1, bspd: 1, shots: 0, orbSpd: 1, fortune: 1, xpMul: 1,
+    // レベルアップとアイテムの取り分は加算で持つ。乗算だと必ず敵の指数を追い抜く
+    dmgAdd: 0, rateAdd: 0, areaAdd: 0, moveAdd: 0,
   };
 }
 function applyTalents(s) {
@@ -882,7 +900,7 @@ function resetGame(seed, daily) {
   time = 0; wave = 1; waveT = WAVE_LEN; kills = 0; spawnAcc = 0; shake = 0;
   hitStop = 0; boss = null; bossSpawned = false; over = false; paused = false;
   coins = 15 * tlv("trader");
-  rerolls = 0; freeRerolls = tlv("gambler"); offers = [];
+  rerolls = 0; rerollsLeft = 3 + tlv("gambler"); offers = [];
 }
 
 // =====================================================================
@@ -895,11 +913,16 @@ function addWeapon(id) {
 }
 function wdef(w) { return WEAPONS[w.id]; }
 // レベルによる伸び：ダメージは乗算、間隔は短縮、種類ごとに数や範囲も伸びる
+// 発射間隔の下限。ここが無いと連射強化を積むだけで毎フレーム発射になる
+const RATE_FLOOR = { shot: .10, nova: 1.0, laser: .6, orbit: .12 };
 function wstat(w) {
   const d = wdef(w), b = d.base, s = P.s, k = w.lv - 1;
+  const sd = s.dmg * (1 + s.dmgAdd);
+  const sr = Math.max(.32, s.rate / (1 + s.rateAdd));   // 連射倍率も3倍で頭打ち
+  const sa = s.area * (1 + s.areaAdd);
   const o = {
-    dmg: b.dmg * (1 + .3 * k) * s.dmg,
-    rate: b.rate * Math.pow(.93, k) * s.rate,
+    dmg: b.dmg * (1 + .3 * k) * sd,
+    rate: Math.max(RATE_FLOOR[d.kind], b.rate * Math.pow(.93, k) * sr),
     kind: d.kind,
   };
   if (d.kind === "shot") {
@@ -909,15 +932,15 @@ function wstat(w) {
     o.spread = b.spread;
     o.life = (b.life || .95) * s.bspd;
   } else if (d.kind === "nova") {
-    o.radius = b.radius * (1 + .1 * k) * s.area;
+    o.radius = b.radius * (1 + .1 * k) * sa;
     o.twin = b.twin;
   } else if (d.kind === "orbit") {
     o.count = b.count + Math.floor(k / 2);
-    o.radius = b.radius * s.area;
-    o.size = b.size * s.area;
+    o.radius = b.radius * sa;
+    o.size = b.size * sa;
     o.spin = 2.2 * s.orbSpd;
   } else if (d.kind === "laser") {
-    o.width = b.width * s.area;
+    o.width = b.width * sa;
     o.len = b.len;
   }
   return o;
@@ -998,7 +1021,7 @@ function fireWeapon(w, st) {
       if (perp < half + e.r) damage(e, st.dmg);
     }
     for (const pr of props) {
-      if (pr.dead || pr.kind === "point") continue;
+      if (pr.dead || pr.kind === "point" || pr.kind === "escort") continue;
       const rx = pr.x - P.x, ry = pr.y - P.y, proj = rx * ux + ry * uy;
       if (proj < 0 || proj > len) continue;
       if (Math.abs(-rx * uy + ry * ux) < half + pr.r) damageProp(pr, st.dmg);
@@ -1008,13 +1031,15 @@ function fireWeapon(w, st) {
   }
   return false;
 }
+let ringCount = 0;
 function novaBlast(R, dmg) {
-  parts.push({ ring: true, x: P.x, y: P.y, r0: 10, r1: R, t: .34, max: .34 });
+  if (ringCount < 6) { parts.push({ ring: true, x: P.x, y: P.y, r0: 10, r1: R, t: .34, max: .34 }); }
   for (const e of enemies) {
-    if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R) damage(e, dmg);
+    if ((e.x - P.x) ** 2 + (e.y - P.y) ** 2 < R * R && hasLOS(P.x, P.y, e.x, e.y)) damage(e, dmg);
   }
   for (const p of props) {
-    if (!p.dead && p.kind !== "point" && (p.x - P.x) ** 2 + (p.y - P.y) ** 2 < R * R) damageProp(p, dmg);
+    if (p.dead || p.kind === "point" || p.kind === "escort") continue;
+    if ((p.x - P.x) ** 2 + (p.y - P.y) ** 2 < R * R && hasLOS(P.x, P.y, p.x, p.y)) damageProp(p, dmg);
   }
   if (!reduceMotion) shake = Math.max(shake, 5);
 }
@@ -1027,6 +1052,7 @@ function updateOrbits(dt) {
     for (let i = 0; i < st.count; i++) {
       const a = w.ang + (i / st.count) * 6.2832;
       const bx = P.x + Math.cos(a) * st.radius, by = P.y + Math.sin(a) * st.radius;
+      if (solidAt(bx, by)) continue;              // 刃が壁に埋まっている間は当たらない
       const cx = (bx / CELL) | 0, cy = (by / CELL) | 0;
       for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) {
         const cell = grid.get((cx + ox) + "," + (cy + oy));
@@ -1233,7 +1259,7 @@ function explode(e) {
   const dmg = 30 * Math.pow(1.28, wave - 1);
   for (const o of enemies) {
     if (o.dead || o === e) continue;
-    if ((o.x - e.x) ** 2 + (o.y - e.y) ** 2 < R * R) damage(o, dmg);
+    if ((o.x - e.x) ** 2 + (o.y - e.y) ** 2 < R * R && hasLOS(e.x, e.y, o.x, o.y)) damage(o, dmg);
   }
   explDepth--;
 }
@@ -1276,7 +1302,7 @@ function update(dt) {
 
   const inp = readInput();
   const pfl = floorAt(P.x, P.y);
-  const spd = P.spd * P.s.move * (pfl === FLOOR.SWAMP ? .68 : 1);
+  const spd = P.spd * Math.min(1.8, P.s.move * (1 + P.s.moveAdd)) * (pfl === FLOOR.SWAMP ? .68 : 1);
   const accel = pfl === FLOOR.ICE ? 1.8 : 16;        // 氷は止まれない
   const k = Math.min(1, accel * dt);
   P.vx += (inp.x * spd - P.vx) * k;
@@ -1388,7 +1414,7 @@ function update(dt) {
     const esp = e.spd * (efl === FLOOR.SWAMP ? .8 : 1);
     if (efl === FLOOR.THORN) {
       e.thornT -= dt;
-      if (e.thornT <= 0) { e.thornT = .5; damage(e, 7 * Math.pow(1.22, wave - 1)); if (e.dead) continue; }
+      if (e.thornT <= 0) { e.thornT = .5; damage(e, e.maxHp * .04); if (e.dead) continue; }
     }
     if (T.fly) {                       // 飛行：壁も床も無視する
       e.x += mx * esp * dt; e.y += my * esp * dt;
@@ -1440,23 +1466,28 @@ function update(dt) {
   for (const b of bullets) {
     b.life -= dt;
     if (b.life <= 0) { b.dead = true; continue; }
-    b.x += b.vx * dt; b.y += b.vy * dt;
-    if (hitProps(b.x, b.y, b.dmg, b.r)) { b.dead = true; continue; }
-    if (solidAt(b.x, b.y)) {
-      hitWall(b.x, b.y, b.dmg);
-      b.dead = true; burst(b.x, b.y, 2, "#cbb894", 60); continue;
-    }
-    const cx = (b.x / CELL) | 0, cy = (b.y / CELL) | 0;
-    for (let ox = -1; ox <= 1 && !b.dead; ox++) for (let oy = -1; oy <= 1 && !b.dead; oy++) {
-      const cell = grid.get((cx + ox) + "," + (cy + oy));
-      if (!cell) continue;
-      for (const e of cell) {
-        if (e.dead) continue;
-        const rr = e.r + b.r;
-        if ((e.x - b.x) ** 2 + (e.y - b.y) ** 2 < rr * rr) {
-          damage(e, b.dmg * e.armor);
-          burst(b.x, b.y, 2, "#bff7f0", 90);
-          if (b.pierce-- <= 0) { b.dead = true; break; }
+    // 1フレームの移動が1マスを超えると薄い壁をすり抜けてしまうので、細かく刻んで進める
+    const travel = Math.hypot(b.vx, b.vy) * dt;
+    const sub = Math.max(1, Math.ceil(travel / (TILE * .5)));
+    for (let k = 0; k < sub && !b.dead; k++) {
+      b.x += b.vx * dt / sub; b.y += b.vy * dt / sub;
+      if (hitProps(b.x, b.y, b.dmg, b.r)) { b.dead = true; break; }
+      if (solidAt(b.x, b.y)) {
+        hitWall(b.x, b.y, b.dmg);
+        b.dead = true; burst(b.x, b.y, 2, "#cbb894", 60); break;
+      }
+      const cx = (b.x / CELL) | 0, cy = (b.y / CELL) | 0;
+      for (let ox = -1; ox <= 1 && !b.dead; ox++) for (let oy = -1; oy <= 1 && !b.dead; oy++) {
+        const cell = grid.get((cx + ox) + "," + (cy + oy));
+        if (!cell) continue;
+        for (const e of cell) {
+          if (e.dead) continue;
+          const rr = e.r + b.r;
+          if ((e.x - b.x) ** 2 + (e.y - b.y) ** 2 < rr * rr) {
+            damage(e, b.dmg * e.armor);
+            burst(b.x, b.y, 2, "#bff7f0", 90);
+            if (b.pierce-- <= 0) { b.dead = true; break; }
+          }
         }
       }
     }
@@ -1482,16 +1513,23 @@ function update(dt) {
   for (const q of eshots) {
     q.life -= dt;
     if (q.life <= 0) { q.dead = true; continue; }
-    q.x += q.vx * dt; q.y += q.vy * dt;
-    if (solidAt(q.x, q.y)) { q.dead = true; continue; }
+    const qt = Math.hypot(q.vx, q.vy) * dt;
+    const qs = Math.max(1, Math.ceil(qt / (TILE * .5)));
+    for (let k = 0; k < qs && !q.dead; k++) {
+      q.x += q.vx * dt / qs; q.y += q.vy * dt / qs;
+      if (solidAt(q.x, q.y)) q.dead = true;
+    }
+    if (q.dead) continue;
     if ((q.x - P.x) ** 2 + (q.y - P.y) ** 2 < (P.r + 6) ** 2) {
       q.dead = true; P.hp -= q.dmg; P.hurtT = .22;
       burst(q.x, q.y, 4, "#b6d84a", 120);
     }
   }
+  ringCount = 0;
   for (const p of parts) {
     p.t -= dt;
     if (p.t <= 0) { p.dead = true; continue; }
+    if (p.ring) ringCount++;
     if (!p.ring) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= .9; p.vy *= .9; }
   }
   for (const t of texts) { t.t -= dt; t.y -= 26 * dt; if (t.t <= 0) t.dead = true; }
@@ -1701,6 +1739,10 @@ function drawHud() {
   el("coins").textContent = coins;
   const s = Math.max(0, Math.ceil(waveT));
   el("waveTag").textContent = `WAVE ${wave} · 0:${String(s).padStart(2, "0")}`;
+  const esc = props.find(p => p.kind === "escort" && !p.dead);
+  const ew = el("escWrap");
+  if (esc) { ew.classList.add("on"); el("escFill").style.transform = `scaleX(${Math.max(0, esc.hp / esc.maxHp)})`; }
+  else ew.classList.remove("on");
   const bw = el("bossWrap");
   if (boss) { bw.classList.add("on"); el("bossFill").style.transform = `scaleX(${Math.max(0, boss.hp / boss.maxHp)})`; }
   else bw.classList.remove("on");
@@ -1762,7 +1804,7 @@ function rarityRoll(rs) {
   return 0;
 }
 function priceOf(offer) {
-  const infl = 1 + (wave - 1) * .14;
+  const infl = 1 + (wave - 1) * .22;
   if (offer.type === "weapon") {
     const owned = P.weapons.find(w => w.id === offer.id);
     const base = WEAPONS[offer.id].price;
@@ -1801,9 +1843,9 @@ function rollOffers() {
 function renderShop() {
   el("shopCoins").textContent = coins;
   el("shopTitle").textContent = `WAVE ${wave} 終了 ─ 補給`;
-  const cost = freeRerolls > 0 ? 0 : 6 + rerolls * 3;
-  el("rerollBtn").textContent = freeRerolls > 0 ? `引き直し（無料 ×${freeRerolls}）` : `引き直し ${cost}¤`;
-  el("rerollBtn").disabled = cost > coins;
+  const cost = rerollCost();
+  el("rerollBtn").textContent = rerollsLeft > 0 ? `引き直し ${cost}¤（残り${rerollsLeft}）` : "引き直し切れ";
+  el("rerollBtn").disabled = rerollsLeft <= 0 || cost > coins;
   const box = el("shopCards");
   box.innerHTML = "";
   offers.forEach((o, idx) => {
@@ -1876,13 +1918,15 @@ function buy(idx) {
 function openShop() {
   paused = true;
   rerolls = 0;
+  rerollsLeft = 3 + tlv("gambler");     // 補給1回につき引き直せる回数
   rollOffers();
   el("shopScreen").classList.add("on");
 }
+function rerollCost() { return 8 + rerolls * 7; }
 el("rerollBtn").onclick = () => {
-  const cost = freeRerolls > 0 ? 0 : 6 + rerolls * 3;
-  if (cost > coins) return;
-  if (freeRerolls > 0) freeRerolls--; else { coins -= cost; rerolls++; }
+  const cost = rerollCost();
+  if (rerollsLeft <= 0 || cost > coins) return;
+  coins -= cost; rerolls++; rerollsLeft--;
   rollOffers();
 };
 el("goBtn").onclick = () => {
@@ -2141,11 +2185,13 @@ addEventListener("blur", () => {
 window.__horde = {
   get enemies() { return enemies.length; },
   get hp() { return Math.round(P.hp); },
+  get maxhp() { return Math.round(P.s.hp); },
   get weapons() { return P.weapons.map(w => w.id + ":" + w.lv).join(","); },
   get items() { return P.items.join(","); },
   get bank() { return save.bank; },
   get seed() { return runSeed; },
   get props() { return props.map(p => p.kind).join(","); },
+  get escort() { const e = props.find(x => x.kind === "escort" && !x.dead); return e ? e.hp / e.maxHp : null; },
   // 自動テスト用：近くの脅威から離れる向きを返す
   get avoid() {
     let ax = 0, ay = 0;
