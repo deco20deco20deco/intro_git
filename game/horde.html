@@ -135,6 +135,12 @@
   .results b{font-family:var(--display);font-size:20px;font-weight:400;display:block;color:var(--sand)}
   .results span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim)}
 
+  #seedIn{
+    font-family:var(--ui);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+    background:var(--panel-2);color:var(--ink);border:2px solid var(--line);padding:10px 12px;width:100%;
+  }
+  #seedIn::placeholder{color:var(--ink-dim);letter-spacing:.06em;text-transform:none}
+  #seedIn:focus-visible{outline:2px solid var(--plasma);outline-offset:1px}
   #cardWrap{display:flex;flex-direction:column;gap:8px}
   #cardImg{width:100%;display:block;border:2px solid var(--line);background:#1f1b16}
   #shareNote{font-size:11px;color:var(--plasma);min-height:14px;letter-spacing:.04em}
@@ -144,6 +150,7 @@
   .talent .meter i{width:11px;height:4px;background:#141210;display:block}
   .talent .meter i.on{background:var(--plasma)}
   .talent button{flex:0 0 auto;font-size:11px;padding:8px 10px}
+  .talent button.undo{font-size:10px;padding:7px 8px;color:var(--ink-dim);border-color:#3d332a}
 
   @media (prefers-reduced-motion:reduce){#banner.show{animation-duration:.01ms}}
 </style>
@@ -177,7 +184,8 @@
     <h1>DUST<br>HORDE</h1>
     <p>荒野に湧く屍の群れ。攻撃は全自動。<b>避けて、拾って、ウェーブ間に買う</b>。武器はMAX＋鍵アイテムで<b>進化</b>する。</p>
     <p>移動：ドラッグ／<kbd>WASD</kbd><kbd>←↑↓→</kbd>　停止：<kbd>P</kbd></p>
-    <div class="foot" style="margin-top:8px">
+    <input id="seedIn" placeholder="SEED を入力（任意）" maxlength="10" autocomplete="off" spellcheck="false">
+    <div class="foot" style="margin-top:0">
       <button id="startBtn">出撃する</button>
       <button class="ghost" id="dailyBtn">今日の挑戦</button>
     </div>
@@ -1014,14 +1022,16 @@ function fireWeapon(w, st) {
       const tt = (i / steps) * st.len;
       if (solidAt(P.x + ux * tt, P.y + uy * tt)) { len = Math.max(0, tt - TILE * .3); break; }
     }
-    beams.push({ x: P.x, y: P.y, a, len, width: st.width, t: .16, max: .16 });
+    let reach = 0;
     for (const e of enemies) {
       const rx = e.x - P.x, ry = e.y - P.y;
       const proj = rx * ux + ry * uy;
       if (proj < 0 || proj > len) continue;
       const perp = Math.abs(-rx * uy + ry * ux);
-      if (perp < half + e.r) damage(e, st.dmg);
+      if (perp < half + e.r) { damage(e, st.dmg); if (proj > reach) reach = proj; }
     }
+    // 見た目は「届いたところまで」。壁までの長さと、当たった一番遠い敵の少し先の短いほう
+    beams.push({ x: P.x, y: P.y, a, len: Math.min(len, reach + 50), width: st.width, t: .16, max: .16, own: true });
     for (const pr of props) {
       if (pr.dead || pr.kind === "point" || pr.kind === "escort") continue;
       const rx = pr.x - P.x, ry = pr.y - P.y, proj = rx * ux + ry * uy;
@@ -1634,6 +1644,9 @@ function draw() {
     ctx.save();
     ctx.beginPath();
     ctx.rect(camX, camY, W, H);
+    // moveTo を挟まないと、矩形の終点から円弧の始点（＝円の右端）へ連結線が引かれ、
+    // それが塗りのアンチエイリアスで1pxの線として画面に出てしまう
+    ctx.moveTo(mcx + CR, mcy);
     ctx.arc(mcx, mcy, CR, 0, 6.2832, true);
     ctx.fillStyle = "rgba(126,28,12,.32)";
     ctx.fill("evenodd");
@@ -1677,14 +1690,17 @@ function draw() {
   // beams
   for (const b of beams) {
     const k = b.t / b.max;
-    const ex = b.x + Math.cos(b.a) * b.len, ey = b.y + Math.sin(b.a) * b.len;
+    const ox = b.own ? P.x : b.x, oy = b.own ? P.y : b.y;
+    const ex = ox + Math.cos(b.a) * b.len, ey = oy + Math.sin(b.a) * b.len;
     ctx.lineCap = "round";
     ctx.strokeStyle = `rgba(70,224,210,${k * .35})`;      // 外側の光
     ctx.lineWidth = b.width * (.6 + k * 1.1);
-    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(ex, ey); ctx.stroke();
-    ctx.strokeStyle = `rgba(220,255,252,${k})`;           // 芯
-    ctx.lineWidth = Math.max(2, b.width * k * .55);
-    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.strokeStyle = `rgba(230,255,253,${k})`;           // 芯
+    ctx.lineWidth = Math.max(3, b.width * k * .6);
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.fillStyle = `rgba(255,255,255,${k * .9})`;        // 着弾の光
+    ctx.beginPath(); ctx.arc(ex, ey, b.width * k * .8, 0, 6.2832); ctx.fill();
   }
 
   // enemy shots
@@ -2003,6 +2019,20 @@ function renderTalents() {
         <small style="color:var(--ink-dim);font-size:11.5px">${t.desc}</small>
         <span class="meter">${meter}</span>
       </span>`;
+    if (lv > 0) {                                  // 取り消し：払った額の半分が戻る
+      const back = Math.floor(t.cost(lv - 1) / 2);
+      const u = document.createElement("button");
+      u.className = "ghost undo";
+      u.textContent = `−1 (+${back}¤)`;
+      u.title = "1段階もどす";
+      u.onclick = () => {
+        save.talents[t.id] = lv - 1;
+        save.bank += back;
+        writeSave();
+        renderTalents();
+      };
+      row.appendChild(u);
+    }
     const b = document.createElement("button");
     b.className = "ghost";
     b.textContent = maxed ? "MAX" : `${cost}¤`;
@@ -2120,7 +2150,7 @@ async function buildCard(res) {
   g.fillStyle = "#4a3d2d"; g.fillRect(64, 1422, 952, 2);
   g.fillStyle = "#a2947f"; g.font = '700 24px "Chakra Petch", sans-serif';
   g.textBaseline = "middle";
-  g.fillText(res.daily ? "同じシードで誰でも挑戦できる" : "SEED を共有すれば同じ盤面で遊べる", 64, 1462);
+  g.fillText(res.daily ? "今日の挑戦は全員この盤面" : "この SEED を入れると同じ盤面で最初から挑める", 64, 1462);
   g.textAlign = "right";
   g.fillStyle = "#e3c68b"; g.font = '400 26px "Bungee", sans-serif';
   g.fillText(res.seed, 1016, 1462);
@@ -2137,7 +2167,7 @@ function resultText() {
   const L = buildLabels();
   return `DUST HORDE — WAVE ${lastRes.wave} 到達 / ${lastRes.timeStr} 生存 / ${lastRes.kills} kills\n`
        + `BUILD: ${L.ws.map(w => w.t).join(", ")}\n`
-       + (lastRes.daily ? `DAILY ${lastRes.seed}` : `SEED ${lastRes.seed}`);
+       + (lastRes.daily ? `DAILY ${lastRes.seed}` : `SEED ${lastRes.seed}（入力すると同じ盤面で挑戦できます）`);
 }
 async function shareResult() {
   const note = m => { el("shareNote").textContent = m; };
@@ -2205,7 +2235,10 @@ function start(seed, daily) {
   drawSlots();
   banner("WAVE 1");
 }
-el("startBtn").onclick = () => start(null, false);
+el("startBtn").onclick = () => {
+  const v = el("seedIn").value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  start(v || null, false);                 // 同じ SEED なら地形も湧きも品揃えも同じ
+};
 el("dailyBtn").onclick = () => start(todaySeed(), true);
 el("againBtn").onclick = () => start(dailyMode ? runSeed : null, dailyMode);
 el("shareBtn").onclick = shareResult;
@@ -2241,6 +2274,7 @@ window.__horde = {
   get bank() { return save.bank; },
   get seed() { return runSeed; },
   get props() { return props.map(p => p.kind).join(","); },
+  get beams() { return beams.length; },
   get stuck() { let n = 0; for (const e of enemies) if (solidAt(e.x, e.y)) n++; return n; },
   get escort() { const e = props.find(x => x.kind === "escort" && !x.dead); return e ? e.hp / e.maxHp : null; },
   // 自動テスト用：近くの脅威から離れる向きを返す
