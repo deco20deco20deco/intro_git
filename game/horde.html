@@ -861,7 +861,7 @@ const WEAPONS = {
   frost: { name: "冷却塔",     glyph: "FRS", price: 16, kind: "frost",
            desc: "周囲の敵を鈍らせる",         base: { dmg: 6, rate: 2.0, radius: 130 } },
   vacuum:{ name: "収束装置",   glyph: "VAC", price: 17, kind: "vacuum",
-           desc: "敵を引き寄せる。範囲攻撃と噛み合う", base: { dmg: 3, rate: 1.4, radius: 220, pull: 140 } },
+           desc: "敵を引き寄せて足止めする",   base: { dmg: 3, rate: 1.4, radius: 220, pull: 140, minR: 105 } },
 
   // --- evolved (ショップには出ない) ---
   railgun: { name: "レールガン", glyph: "RG", evolved: true, kind: "laser",
@@ -879,7 +879,7 @@ const WEAPONS = {
   blizzard:{ name: "ブリザード", glyph: "BZ", evolved: true, kind: "frost",
              desc: "広範囲を凍らせる",        base: { dmg: 16, rate: 1.7, radius: 240 } },
   hole:    { name: "ブラックホール", glyph: "BH", evolved: true, kind: "vacuum",
-             desc: "強烈に引き寄せて削る",    base: { dmg: 16, rate: 1.2, radius: 300, pull: 260 } },
+             desc: "強烈に引き寄せて削る",    base: { dmg: 16, rate: 1.2, radius: 300, pull: 260, minR: 95 } },
   vulcan:  { name: "バルカン",   glyph: "VC", evolved: true, kind: "shot",
              desc: "3点バーストを高速連射", base: { dmg: 13, rate: .13, spd: 680, pierce: 2, shots: 3, spread: .1 } },
 };
@@ -1170,6 +1170,7 @@ function wstat(w) {
   } else if (d.kind === "vacuum") {
     o.radius = b.radius * (1 + .06 * k) * sa;
     o.pull = b.pull;
+    o.minR = b.minR;                       // ここより内側へは引き込まない
   }
   return o;
 }
@@ -1243,11 +1244,13 @@ function fireWeapon(w, st) {
     return true;
   }
   if (st.kind === "vacuum") {                  // 引き寄せ＝範囲攻撃との組み合わせで化ける
-    parts.push({ ring: true, x: P.x, y: P.y, r0: st.radius, r1: 14, t: .32, max: .32, cold: true });
+    const minR = st.minR || 105;
+    parts.push({ ring: true, x: P.x, y: P.y, r0: st.radius, r1: minR, t: .32, max: .32, cold: true });
     for (const e of enemies) {
-      const dx = P.x - e.x, dy = P.y - e.y, d = Math.hypot(dx, dy);
-      if (d > st.radius || d < 30 || e.kind === "boss") continue;
-      moveEnt(e, dx / d * st.pull, dy / d * st.pull);
+      const dx = P.x - e.x, dy = P.y - e.y, d = Math.hypot(dx, dy) || 1;
+      if (d > st.radius || d <= minR || e.kind === "boss") continue;
+      const step = Math.min(st.pull, d - minR);   // 自分の真上には乗せない
+      moveEnt(e, dx / d * step, dy / d * step);
       damage(e, st.dmg);
     }
     if (!reduceMotion) shake = Math.max(shake, 4);
@@ -1539,7 +1542,7 @@ function spawnRate() {
   // 湧き穴が生きている分だけ、空からの湧きを減らす（総量が跳ねないように）
   let holes = 0;
   for (const p of props) if (!p.dead && p.kind === "spawner") holes++;
-  return Math.max(1.2, 1.7 + wave * 1.35 - holes * 1.2);
+  return Math.max(1.1, 1.5 + wave * 1.15 - holes * 1.2);
 }
 
 function endWave() {
@@ -1814,7 +1817,7 @@ function update(dt) {
   }
   liveSpit = nSpit; liveMason = nMason; liveBreak = nBreak;
   if (contact > 0) {
-    P.hp -= Math.min(contact, 13 * Math.pow(1.14, wave - 1) * Math.pow(1.07, Math.max(0, wave - 6))) * dt;
+    P.hp -= Math.min(contact, 12 * Math.pow(1.13, wave - 1) * Math.pow(1.07, Math.max(0, wave - 6))) * dt;
     P.hurtT = .18;
     if (P.hp <= 0) { gameOver(); return; }
   }
@@ -2208,7 +2211,11 @@ function rollOffer(rs) {
     // 手持ちの強化か、空きスロットへの新規
     const upgradable = P.weapons.filter(w => !WEAPONS[w.id].evolved && w.lv < WMAX).map(w => w.id);
     const fresh = P.weapons.length < SLOTS ? weaponIds.filter(k => !P.weapons.some(w => w.id === k)) : [];
-    const poolW = upgradable.concat(fresh);
+    // 種類が増えたぶん、手持ちを育てる目が細らないように優先度をつける
+    if (upgradable.length && (!fresh.length || rs() < .62)) {
+      return { type: "weapon", id: pickR(rs, upgradable) };
+    }
+    const poolW = fresh.length ? fresh : upgradable;
     if (poolW.length) return { type: "weapon", id: pickR(rs, poolW) };
   }
   const rar = rarityRoll(rs);
