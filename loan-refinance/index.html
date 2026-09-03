@@ -1,0 +1,524 @@
+<title>住宅ローン借り換え損益シミュレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --paper:#F5F7F8;
+    --surface:#FFFFFF;
+    --surface-2:#EDF1F2;
+    --ink:#101A1E;
+    --ink-2:#48585E;
+    --ink-3:#78888E;
+    --line:#D7DFE1;
+    --line-strong:#B6C3C6;
+    --accent:#1B5E5A;
+    --accent-soft:#E2EEEC;
+    --gain:#15704A;
+    --gain-soft:#E1F0E8;
+    --loss:#9E3527;
+    --loss-soft:#F6E4E1;
+    --shadow:0 1px 2px rgba(16,26,30,.06), 0 8px 24px -16px rgba(16,26,30,.28);
+    --mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+    --sans:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+    --serif:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0D1315; --surface:#151E21; --surface-2:#1D282B;
+      --ink:#E6EDEE; --ink-2:#A2B2B6; --ink-3:#7A8A8E;
+      --line:#2A373B; --line-strong:#3C4C51;
+      --accent:#5FB3A8; --accent-soft:#183330;
+      --gain:#4FBE8B; --gain-soft:#14301F;
+      --loss:#E08272; --loss-soft:#331915;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0D1315; --surface:#151E21; --surface-2:#1D282B;
+    --ink:#E6EDEE; --ink-2:#A2B2B6; --ink-3:#7A8A8E;
+    --line:#2A373B; --line-strong:#3C4C51;
+    --accent:#5FB3A8; --accent-soft:#183330;
+    --gain:#4FBE8B; --gain-soft:#14301F;
+    --loss:#E08272; --loss-soft:#331915;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:32px 22px 72px}
+
+  header.masthead{
+    display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between;
+    gap:16px; padding-bottom:18px; border-bottom:2px solid var(--ink);
+  }
+  .masthead h1{
+    font-family:var(--serif); font-weight:700; font-size:clamp(26px,3.6vw,38px);
+    letter-spacing:.02em; margin:0; line-height:1.25; text-wrap:balance;
+  }
+  .masthead p{margin:6px 0 0; color:var(--ink-2); font-size:13.5px; max-width:56ch}
+  .stamp{
+    font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent); border:1px solid var(--accent); border-radius:2px;
+    padding:5px 10px; white-space:nowrap; align-self:center;
+  }
+
+  .cols{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:34px; margin-top:30px; align-items:start}
+  @media (max-width:920px){ .cols{grid-template-columns:1fr; gap:26px} }
+
+  /* ---- form ---- */
+  form{display:flex; flex-direction:column; gap:22px}
+  fieldset{
+    border:1px solid var(--line); border-radius:3px; background:var(--surface);
+    margin:0; padding:16px 18px 18px; box-shadow:var(--shadow);
+  }
+  legend{
+    font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--ink-2); padding:0 7px; margin-left:-4px;
+  }
+  .field{display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; padding:7px 0}
+  .field + .field{border-top:1px dotted var(--line)}
+  .field label{font-size:13.5px; color:var(--ink-2); line-height:1.45}
+  .field .hint{display:block; font-size:11.5px; color:var(--ink-3); line-height:1.4}
+  .ctrl{display:flex; align-items:baseline; gap:6px}
+  input[type=number]{
+    font-family:var(--mono); font-size:15px; font-weight:500; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--line-strong); border-radius:2px;
+    padding:6px 8px; width:110px; text-align:right; font-variant-numeric:tabular-nums;
+  }
+  input[type=number]:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+  .unit{font-size:12px; color:var(--ink-3); width:2.6em}
+  .seg{display:flex; border:1px solid var(--line-strong); border-radius:2px; overflow:hidden}
+  .seg label{
+    font-size:12.5px; padding:5px 11px; cursor:pointer; color:var(--ink-2);
+    background:var(--surface-2); user-select:none;
+  }
+  .seg label + label{border-left:1px solid var(--line-strong)}
+  .seg input{position:absolute; opacity:0; pointer-events:none}
+  .seg input:checked + span{color:var(--surface); }
+  .seg label:has(input:checked){background:var(--accent); color:#fff}
+  .seg label:has(input:focus-visible){outline:2px solid var(--accent); outline-offset:-2px}
+
+  /* ---- results ---- */
+  .results{display:flex; flex-direction:column; gap:18px; position:sticky; top:20px}
+  @media (max-width:920px){ .results{position:static} }
+
+  .verdict{
+    border:2px solid var(--ink); border-radius:3px; background:var(--surface);
+    padding:20px 22px 18px; box-shadow:var(--shadow);
+  }
+  .verdict .kicker{
+    font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+  }
+  .verdict .amount{
+    font-family:var(--mono); font-weight:600; font-size:clamp(34px,6vw,52px);
+    line-height:1.05; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+    margin:6px 0 2px; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;
+  }
+  .amount .yen{font-size:.44em; font-weight:500; color:var(--ink-2); letter-spacing:0}
+  .is-gain .amount{color:var(--gain)}
+  .is-loss .amount{color:var(--loss)}
+  .verdict .read{font-size:13.5px; color:var(--ink-2); margin:8px 0 0}
+  .verdict .read b{color:var(--ink); font-weight:700}
+
+  .pills{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+  .pill{
+    font-size:12px; padding:4px 10px; border-radius:100px; border:1px solid transparent;
+    font-family:var(--mono); font-variant-numeric:tabular-nums;
+  }
+  .pill.ok{background:var(--gain-soft); color:var(--gain); border-color:var(--gain)}
+  .pill.bad{background:var(--loss-soft); color:var(--loss); border-color:var(--loss)}
+  .pill.flat{background:var(--surface-2); color:var(--ink-2); border-color:var(--line-strong)}
+
+  .panel{border:1px solid var(--line); border-radius:3px; background:var(--surface); box-shadow:var(--shadow)}
+  .panel > h2{
+    font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--ink-2); margin:0; padding:13px 18px 11px; border-bottom:1px solid var(--line);
+  }
+  .tblwrap{overflow-x:auto}
+  table{width:100%; border-collapse:collapse; font-size:13.5px}
+  th,td{padding:8px 18px; text-align:right; white-space:nowrap}
+  th:first-child,td:first-child{text-align:left; white-space:normal; min-width:12em}
+  thead th{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-3); font-weight:500; padding-top:11px; padding-bottom:9px;
+  }
+  tbody tr + tr td{border-top:1px solid var(--line)}
+  td.num{font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:500}
+  td.sub{color:var(--ink-3); font-size:12px}
+  tr.total td{border-top:2px solid var(--line-strong); font-weight:700; background:var(--surface-2)}
+  .pos{color:var(--gain)} .neg{color:var(--loss)}
+  tr.mark td{background:var(--accent-soft)}
+  tr.mark td:first-child::after{content:"　←　損益分岐"; font-size:11px; color:var(--accent); font-family:var(--mono)}
+
+  .barcell{min-width:130px}
+  .bar{height:7px; border-radius:1px; background:var(--line); position:relative; overflow:hidden}
+  .bar i{position:absolute; top:0; bottom:0; display:block; border-radius:1px}
+  .bar i.p{background:var(--gain); left:50%} .bar i.n{background:var(--loss); right:50%}
+  .bar::after{content:""; position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:var(--line-strong)}
+
+  footer.notes{
+    margin-top:30px; border-top:1px solid var(--line); padding-top:18px;
+    font-size:12.5px; color:var(--ink-2); line-height:1.75;
+  }
+  footer.notes h3{font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3); margin:0 0 8px}
+  footer.notes ul{margin:0; padding-left:1.15em} footer.notes li{margin-bottom:5px}
+  .samplenote{
+    font-size:12px; color:var(--ink-3); font-family:var(--mono);
+    background:var(--surface-2); border-left:2px solid var(--accent);
+    padding:7px 12px; margin:0 0 4px;
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <h1>住宅ローン借り換え損益シミュレーター</h1>
+      <p>諸費用・保証料の戻り・団信の金利上乗せ・住宅ローン控除の増減まで含めた、正味の損得だけを出します。判断はしません。</p>
+    </div>
+    <span class="stamp">諸費用込み・正味計算</span>
+  </header>
+
+  <div class="cols">
+    <form id="f" autocomplete="off">
+      <p class="samplenote">初期値はサンプルです。ご自身の返済予定表の数字に置き換えてください。</p>
+
+      <fieldset>
+        <legend>現在のローン</legend>
+        <div class="field">
+          <label for="bal">ローン残高<span class="hint">返済予定表の現在残高</span></label>
+          <div class="ctrl"><input type="number" id="bal" value="28000000" step="100000" min="0"><span class="unit">円</span></div>
+        </div>
+        <div class="field">
+          <label for="rate0">適用金利<span class="hint">団信上乗せを除いた表面金利</span></label>
+          <div class="ctrl"><input type="number" id="rate0" value="1.275" step="0.005" min="0"><span class="unit">%</span></div>
+        </div>
+        <div class="field">
+          <label for="yr0">残返済期間</label>
+          <div class="ctrl"><input type="number" id="yr0" value="27" step="1" min="1" max="50"><span class="unit">年</span></div>
+        </div>
+        <div class="field">
+          <label for="dan0">団信の金利上乗せ<span class="hint">がん団信等。なければ 0</span></label>
+          <div class="ctrl"><input type="number" id="dan0" value="0" step="0.05" min="0"><span class="unit">%</span></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>借り換え先</legend>
+        <div class="field">
+          <label for="rate1">適用金利</label>
+          <div class="ctrl"><input type="number" id="rate1" value="0.650" step="0.005" min="0"><span class="unit">%</span></div>
+        </div>
+        <div class="field">
+          <label for="yr1">返済期間<span class="hint">延ばすと月額は下がるが総額は増える</span></label>
+          <div class="ctrl"><input type="number" id="yr1" value="27" step="1" min="1" max="50"><span class="unit">年</span></div>
+        </div>
+        <div class="field">
+          <label for="dan1">団信の金利上乗せ</label>
+          <div class="ctrl"><input type="number" id="dan1" value="0.1" step="0.05" min="0"><span class="unit">%</span></div>
+        </div>
+        <div class="field">
+          <label>事務手数料の方式</label>
+          <div class="seg">
+            <label><input type="radio" name="feeType" value="rate" checked><span>定率</span></label>
+            <label><input type="radio" name="feeType" value="flat"><span>定額</span></label>
+          </div>
+        </div>
+        <div class="field" id="feeRateRow">
+          <label for="feeRate">事務手数料率<span class="hint">借入額に対して。2.2% が主流</span></label>
+          <div class="ctrl"><input type="number" id="feeRate" value="2.2" step="0.1" min="0"><span class="unit">%</span></div>
+        </div>
+        <div class="field" id="feeFlatRow" hidden>
+          <label for="feeFlat">事務手数料（定額）</label>
+          <div class="ctrl"><input type="number" id="feeFlat" value="55000" step="1000" min="0"><span class="unit">円</span></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>諸費用（自動計算ぶんは編集可）</legend>
+        <div class="field">
+          <label for="shiho">司法書士報酬<span class="hint">抵当権の抹消＋設定</span></label>
+          <div class="ctrl"><input type="number" id="shiho" value="80000" step="5000" min="0"><span class="unit">円</span></div>
+        </div>
+        <div class="field">
+          <label for="kuriage">全額繰上返済手数料<span class="hint">現在の銀行に払う</span></label>
+          <div class="ctrl"><input type="number" id="kuriage" value="33000" step="1000" min="0"><span class="unit">円</span></div>
+        </div>
+        <div class="field">
+          <label for="hosho">戻し保証料<span class="hint">前銀行から返る分。多くの比較サイトが無視する項目</span></label>
+          <div class="ctrl"><input type="number" id="hosho" value="0" step="10000" min="0"><span class="unit">円</span></div>
+        </div>
+        <div class="field">
+          <label for="other">その他（火災保険の切替等）</label>
+          <div class="ctrl"><input type="number" id="other" value="0" step="1000" min="0"><span class="unit">円</span></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>住宅ローン控除</legend>
+        <div class="field">
+          <label for="dedYears">控除の残年数<span class="hint">0 なら控除の計算をしない</span></label>
+          <div class="ctrl"><input type="number" id="dedYears" value="8" step="1" min="0" max="13"><span class="unit">年</span></div>
+        </div>
+        <div class="field">
+          <label for="dedCap">借入限度額<span class="hint">年末残高のうち控除対象になる上限</span></label>
+          <div class="ctrl"><input type="number" id="dedCap" value="30000000" step="1000000" min="0"><span class="unit">円</span></div>
+        </div>
+        <div class="field">
+          <label for="dedRate">控除率</label>
+          <div class="ctrl"><input type="number" id="dedRate" value="0.7" step="0.1" min="0"><span class="unit">%</span></div>
+        </div>
+      </fieldset>
+    </form>
+
+    <div class="results">
+      <section class="verdict" id="verdict">
+        <div class="kicker">完済までの正味損益</div>
+        <div class="amount" id="net"><span class="yen">¥</span>0</div>
+        <p class="read" id="read"></p>
+        <div class="pills" id="pills"></div>
+      </section>
+
+      <section class="panel">
+        <h2>内訳</h2>
+        <div class="tblwrap">
+          <table>
+            <thead><tr><th>項目</th><th>金額</th><th>備考</th></tr></thead>
+            <tbody id="breakdown"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>あと何年住むなら得か</h2>
+        <div class="tblwrap">
+          <table>
+            <thead><tr><th>経過</th><th>正味損益</th><th class="barcell">損 ← → 得</th></tr></thead>
+            <tbody id="horizon"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>月々の返済</h2>
+        <div class="tblwrap">
+          <table>
+            <thead><tr><th>シナリオ</th><th>月額</th><th>総返済額</th></tr></thead>
+            <tbody id="monthly"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer class="notes">
+    <h3>計算の前提</h3>
+    <ul>
+      <li>返済方式は元利均等・全期間同一金利で計算しています。変動金利を選んだ場合、実際の金利は将来変わります。この試算は「今の金利がずっと続いたら」の値です。</li>
+      <li>抵当権設定の登録免許税は借入額の 0.4%、抹消の登録免許税は土地・建物あわせて 2,000 円、印紙税は借入額に応じた軽減後の税額（1,000万円超5,000万円以下なら 20,000 円）を自動で計上しています。</li>
+      <li>住宅ローン控除は「各年の年末残高と借入限度額の小さいほう × 控除率」で計算し、借り換え前後の差額を損益に反映しています。所得税・住民税の納税額が控除枠に満たない場合、実際の恩恵はこれより小さくなります。</li>
+      <li>借り換えても控除を継続するには、返済期間が10年以上残ること、当初の借入額の範囲内であること等の要件があります。</li>
+      <li>団信は借り換え時に加入し直しになるため、健康状態によっては借り換え自体ができない、または保障内容が変わることがあります。</li>
+      <li>諸費用は現金一括払いを前提にしています。諸費用をローンに組み込む場合、借入額が増えるぶん利息も増えます。</li>
+    </ul>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var yen = function(n){ return Math.round(n).toLocaleString('ja-JP'); };
+  var man = function(n){
+    var v = n/10000;
+    return (v>=0?'':'-') + Math.abs(v).toLocaleString('ja-JP',{maximumFractionDigits:1}) + '万円';
+  };
+
+  // 元利均等の毎月返済額
+  function payment(P, annual, months){
+    if(months<=0) return 0;
+    var r = annual/100/12;
+    if(r===0) return P/months;
+    return P * r / (1 - Math.pow(1+r, -months));
+  }
+
+  // 各年の年末残高（12ヶ月ごと）
+  function yearEndBalances(P, annual, months){
+    var r = annual/100/12, pay = payment(P, annual, months), bal = P, out = [];
+    for(var m=1; m<=months; m++){
+      bal = bal + bal*r - pay;
+      if(bal < 0) bal = 0;
+      if(m % 12 === 0) out.push(bal);
+    }
+    if(months % 12 !== 0) out.push(bal);
+    return out;
+  }
+
+  // 印紙税（消費貸借契約書・軽減後）
+  function stampDuty(P){
+    if(P <= 1000000) return 500;
+    if(P <= 5000000) return 2000;
+    if(P <= 10000000) return 10000;
+    if(P <= 50000000) return 20000;
+    if(P <= 100000000) return 60000;
+    return 100000;
+  }
+
+  function num(id){ var v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
+
+  function calc(){
+    var P     = num('bal');
+    var n0    = Math.round(num('yr0')*12);
+    var n1    = Math.round(num('yr1')*12);
+    var r0    = num('rate0') + num('dan0');
+    var r1    = num('rate1') + num('dan1');
+
+    var pay0  = payment(P, r0, n0);
+    var pay1  = payment(P, r1, n1);
+    var tot0  = pay0 * n0;
+    var tot1  = pay1 * n1;
+
+    // 諸費用
+    var flatFee = document.querySelector('input[name=feeType]:checked').value === 'flat';
+    var jimu    = flatFee ? num('feeFlat') : P * num('feeRate')/100;
+    var touki   = P * 0.004;          // 抵当権設定 登録免許税
+    var masshou = 2000;               // 抹消 登録免許税（土地＋建物）
+    var inshi   = stampDuty(P);
+    var shiho   = num('shiho');
+    var kuri    = num('kuriage');
+    var other   = num('other');
+    var modori  = num('hosho');
+    var costGross = jimu + touki + masshou + inshi + shiho + kuri + other;
+    var costNet   = costGross - modori;
+
+    // 住宅ローン控除の差分（借り換えで増えるならプラス）
+    var dy = Math.round(num('dedYears')), cap = num('dedCap'), dr = num('dedRate')/100;
+    var ded0 = 0, ded1 = 0;
+    if(dy > 0){
+      var b0 = yearEndBalances(P, r0, n0), b1 = yearEndBalances(P, r1, n1);
+      for(var i=0; i<dy; i++){
+        ded0 += Math.min(b0[i] || 0, cap) * dr;
+        ded1 += Math.min(b1[i] || 0, cap) * dr;
+      }
+    }
+    var dedDiff = ded1 - ded0;
+
+    var net = (tot0 - tot1) - costNet + dedDiff;
+
+    // 損益分岐（月次で累積）
+    var cum = -costNet, be = null, monthlyDiff = pay0 - pay1;
+    var db0 = dy>0 ? yearEndBalances(P, r0, n0) : [], db1 = dy>0 ? yearEndBalances(P, r1, n1) : [];
+    var horizonPts = {};
+    var maxM = Math.max(n0, n1);
+    for(var m=1; m<=maxM; m++){
+      cum += (m<=n0 ? pay0 : 0) - (m<=n1 ? pay1 : 0);
+      if(m % 12 === 0){
+        var y = m/12;
+        if(y <= dy){
+          cum += Math.min(db1[y-1]||0, cap)*dr - Math.min(db0[y-1]||0, cap)*dr;
+        }
+        horizonPts[y] = cum;
+      }
+      if(be === null && cum >= 0) be = m;
+    }
+
+    return {
+      P:P, pay0:pay0, pay1:pay1, tot0:tot0, tot1:tot1,
+      jimu:jimu, touki:touki, masshou:masshou, inshi:inshi, shiho:shiho,
+      kuri:kuri, other:other, modori:modori, costGross:costGross, costNet:costNet,
+      dedDiff:dedDiff, net:net, be:be, monthlyDiff:monthlyDiff,
+      horizonPts:horizonPts, n0:n0, n1:n1
+    };
+  }
+
+  function signCell(v){
+    var cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+    var s = (v > 0 ? '+' : v < 0 ? '−' : '') + yen(Math.abs(v));
+    return '<td class="num ' + cls + '">' + s + '</td>';
+  }
+
+  function render(){
+    var d = calc();
+
+    // ---- verdict
+    var v = $('verdict');
+    v.classList.toggle('is-gain', d.net > 0);
+    v.classList.toggle('is-loss', d.net < 0);
+    $('net').innerHTML = '<span class="yen">' + (d.net < 0 ? '−¥' : '¥') + '</span>' + yen(Math.abs(d.net));
+
+    var beText;
+    if(d.be === null){
+      beText = '完済まで払い続けても諸費用を回収できません。';
+    }else{
+      var by = Math.floor(d.be/12), bm = d.be % 12;
+      beText = '諸費用を取り戻すまで <b>' + (by>0 ? by + '年' : '') + (bm>0 ? bm + 'ヶ月' : (by>0?'':'0ヶ月')) + '</b>。'
+             + 'それより前に売却・完済すると損になります。';
+    }
+    $('read').innerHTML = beText;
+
+    var pills = [];
+    var md = d.pay0 - d.pay1;
+    pills.push('<span class="pill ' + (md>0?'ok':md<0?'bad':'flat') + '">月々 ' + (md>0?'−':'+') + yen(Math.abs(md)) + '円</span>');
+    pills.push('<span class="pill flat">諸費用 ' + yen(d.costNet) + '円</span>');
+    if(Math.abs(d.dedDiff) >= 1000){
+      pills.push('<span class="pill ' + (d.dedDiff>0?'ok':'bad') + '">控除 ' + (d.dedDiff>0?'+':'−') + yen(Math.abs(d.dedDiff)) + '円</span>');
+    }
+    $('pills').innerHTML = pills.join('');
+
+    // ---- breakdown
+    var rows = [
+      ['総返済額の差', d.tot0 - d.tot1, '現在のまま ' + man(d.tot0) + ' → 借換後 ' + man(d.tot1)],
+      ['事務手数料', -d.jimu, document.querySelector('input[name=feeType]:checked').value === 'flat' ? '定額' : '借入額 × ' + num('feeRate') + '%'],
+      ['登録免許税（設定）', -d.touki, '借入額 × 0.4%'],
+      ['登録免許税（抹消）', -d.masshou, '土地・建物 各1,000円'],
+      ['印紙税', -d.inshi, '軽減後の税額'],
+      ['司法書士報酬', -d.shiho, ''],
+      ['繰上返済手数料', -d.kuri, '現在の銀行へ'],
+      ['その他', -d.other, ''],
+      ['戻し保証料', d.modori, '前銀行から返還'],
+      ['住宅ローン控除の増減', d.dedDiff, num('dedYears') > 0 ? '残 ' + num('dedYears') + '年ぶん' : '計算なし']
+    ];
+    $('breakdown').innerHTML = rows.map(function(r){
+      return '<tr><td>' + r[0] + '</td>' + signCell(r[1]) + '<td class="sub">' + r[2] + '</td></tr>';
+    }).join('') + '<tr class="total"><td>正味損益</td>' + signCell(d.net) + '<td class="sub"></td></tr>';
+
+    // ---- horizon
+    var years = [3,5,10,15,20,25,30].filter(function(y){ return y*12 <= Math.max(d.n0,d.n1); });
+    var endY = Math.ceil(Math.max(d.n0,d.n1)/12);
+    if(years.indexOf(endY) === -1) years.push(endY);
+    var vals = years.map(function(y){ return d.horizonPts[y] !== undefined ? d.horizonPts[y] : d.net; });
+    var scale = Math.max.apply(null, vals.map(Math.abs).concat([1]));
+    var beY = d.be === null ? null : Math.ceil(d.be/12);
+
+    $('horizon').innerHTML = years.map(function(y, i){
+      var val = vals[i];
+      var w = Math.min(50, Math.abs(val)/scale*50);
+      var bar = '<div class="bar"><i class="' + (val>=0?'p':'n') + '" style="width:' + w + '%"></i></div>';
+      var label = (y === endY ? '完済時（' + y + '年）' : 'あと ' + y + '年');
+      var mark = (beY !== null && y === beY) ? ' class="mark"' : '';
+      return '<tr' + mark + '><td>' + label + '</td>' + signCell(val) + '<td class="barcell">' + bar + '</td></tr>';
+    }).join('');
+
+    // ---- monthly
+    $('monthly').innerHTML =
+      '<tr><td>現在のまま</td><td class="num">' + yen(d.pay0) + '円</td><td class="num">' + man(d.tot0) + '</td></tr>' +
+      '<tr><td>借り換え後</td><td class="num">' + yen(d.pay1) + '円</td><td class="num">' + man(d.tot1) + '</td></tr>' +
+      '<tr class="total"><td>差</td>' + signCell(d.pay0 - d.pay1) + signCell(d.tot0 - d.tot1) + '</tr>';
+  }
+
+  document.querySelectorAll('input[name=feeType]').forEach(function(el){
+    el.addEventListener('change', function(){
+      var flat = document.querySelector('input[name=feeType]:checked').value === 'flat';
+      $('feeRateRow').hidden = flat;
+      $('feeFlatRow').hidden = !flat;
+      render();
+    });
+  });
+  $('f').addEventListener('input', render);
+  render();
+})();
+</script>
