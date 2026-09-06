@@ -122,6 +122,7 @@ footer{margin-top:3.5rem;padding-top:1.4rem;border-top:1px solid var(--rule);fon
   <nav>
     <a href="#wind">風切り音</a>
     <a href="#setting">カメラ設定</a>
+    <a href="#size">容量の計算</a>
     <a href="#walk">歩き方</a>
     <a href="#where">どこで撮るか</a>
     <a href="#legal">撮影のルール</a>
@@ -176,13 +177,37 @@ footer{margin-top:3.5rem;padding-top:1.4rem;border-top:1px solid var(--rule);fon
     <div><span class="k">フォーカス</span><span class="rest"><span class="v">遠景でロック</span><span class="why">歩くたびに手前の通行人にピントを取られると酔います。</span></span></div>
     <div><span class="k">画面の向き</span><span class="rest"><span class="v">横（絶対）</span><span class="why">テレビ画面が最終出力なので、縦で撮ったものは一切使えません。</span></span></div>
     <div><span class="k">機内モード</span><span class="rest"><span class="v">ON</span><span class="why">通信は発熱と電池消費の主因。<b>長回しの敵は発熱です。</b>着信で撮影が止まる事故も防げます。</span></span></div>
-    <div><span class="k">給電</span><span class="rest"><span class="v">モバイルバッテリーを繋いだまま</span><span class="why">40〜60分の4K撮影は電池を大きく食います。ただし<b>給電すると発熱も増える</b>ので、ケースは外しておく。</span></span></div>
-    <div><span class="k">空き容量</span><span class="rest"><span class="v">64GB以上空ける</span><span class="why">4K30分でおよそ10GB前後。3本撮るなら余裕を持って。</span></span></div>
+    <div><span class="k">給電</span><span class="rest"><span class="v">モバイルバッテリーを繋いだまま</span><span class="why">30〜60分の4K撮影は電池を大きく食います。ただし<b>給電すると発熱も増える</b>ので、ケースは外しておく。</span></span></div>
+    <div><span class="k">圧縮形式</span><span class="rest"><span class="v">高効率（HEVC / H.265）</span><span class="why"><b>ここで容量が倍違います。</b>iPhoneなら 設定 &gt; カメラ &gt; フォーマット &gt;「高効率」。互換性優先（H.264）だと同じ映像で<b>約2倍</b>食います。</span></span></div>
+    <div><span class="k">1本の長さ</span><span class="rest"><span class="v">空き容量から逆算する</span><span class="why">下の表で計算してください。<b>空きが20GBなら、30分×3本（約15GB）が上限</b>です。</span></span></div>
   </div>
 </section>
 
+<section id="size">
+  <div class="sec-head"><span class="sec-num">03</span><h2>容量の計算</h2></div>
+  <p class="sec-note">4K撮影は容量を食います。<b>撮影中に容量切れで止まるのが一番もったいない</b>ので、出る前に計算しておいてください。</p>
+
+  <div class="set">
+    <div><span class="k">4K / 60fps</span><span class="rest"><span class="v">約400MB/分　＝　24GB/時</span><span class="why">これは選ばない。容量も発熱も倍。</span></span></div>
+    <div><span class="k">4K / 30fps</span><span class="rest"><span class="v">約170MB/分　＝　約10GB/時</span><span class="why"><b>推奨。</b>30分で約5GB、60分で約10GB。</span></span></div>
+    <div><span class="k">1080p / 30fps</span><span class="rest"><span class="v">約65MB/分　＝　約4GB/時</span><span class="why">容量は軽いが、テレビ画面が最終出力なので<b>できれば避けたい</b>。</span></span></div>
+  </div>
+  <p style="font-size:.84rem;color:var(--ink-3);margin-top:-.3rem;">※ iPhoneの高効率（HEVC）撮影のおおよその目安。Android機や設定によって前後します。</p>
+
+  <h3>空きが20GBのときの結論</h3>
+  <div class="set">
+    <div><span class="k">できる</span><span class="rest"><span class="v">30分 × 3本（約15GB）</span><span class="why">余裕を持って収まります。<b>今回はこれで行ってください。</b></span></span></div>
+    <div><span class="k">ぎりぎり</span><span class="rest"><span class="v">60分 × 2本（約20GB）</span><span class="why">残量ゼロになるので、撮影中に止まるリスクがあります。</span></span></div>
+    <div><span class="k">無理</span><span class="rest"><span class="v">60分 × 3本（約30GB）</span><span class="why">容量が足りません。</span></span></div>
+  </div>
+
+  <div class="callout"><b>30分に短くするのは、妥協ではなく最適解です。</b>理由が2つあります。①Phase 0 の目的は完成品を作ることではなく<b>「これを毎週やれるか」を確かめること</b>で、30分でも露出・手ブレ・音の判定は十分できます。②24時間ループ配信は<b>1本30分以上</b>が推奨条件なので、<b>30分×3本＝90分のプレイリストは、そのまま配信の最低要件を満たします。</b></div>
+
+  <div class="warn"><b>撮影の前に必ずやること。</b>スマホの空き容量を実際に確認し、<b>写真や動画をクラウドやPCに移して空けておく。</b>「行ってから消す」は絶対にやらないでください——暗い夜道で消す写真を選ぶ作業ほど、やる気を削ぐものはありません。可能なら<b>30GB以上</b>空けて行くと、その場で撮り直しもできて安心です。</div>
+</section>
+
 <section id="walk">
-  <div class="sec-head"><span class="sec-num">03</span><h2>歩き方</h2></div>
+  <div class="sec-head"><span class="sec-num">04</span><h2>歩き方</h2></div>
   <p class="sec-note">機材より、ここが素人と見られるかの分かれ目になります。</p>
 
   <ul class="plain">
@@ -190,14 +215,14 @@ footer{margin-top:3.5rem;padding-top:1.4rem;border-top:1px solid var(--rule);fon
     <li><strong>カメラは胸から目線の高さ、水平を保つ。</strong>下を向くと地面ばかりになり、上を向くと空ばかりになります。</li>
     <li><strong>急に振り向かない。</strong>曲がるときは<b>体ごとゆっくり</b>。カメラだけ振ると酔います。</li>
     <li><strong>両手で持つか、脇を締める。</strong>ジンバルがない前提なので、<b>腕を体に固定して、脚のクッションで揺れを吸収</b>する意識で。すり足気味に歩くと縦揺れが減ります。</li>
-    <li><strong>止めない、切らない。</strong>40〜60分を1本の長回しで。<b>途中で止めるとファイルが分かれて後が面倒</b>です。信号待ちはそのまま撮っていて構いません（むしろ自然）。</li>
+    <li><strong>止めない、切らない。</strong>30分を1本の長回しで。<b>途中で止めるとファイルが分かれて後が面倒</b>です。信号待ちはそのまま撮っていて構いません（むしろ自然）。</li>
     <li><strong>喋らない。</strong>ナレーションなしが商品の核です。環境音だけ。</li>
     <li><strong>最初と最後に5秒、静止して撮る。</strong>編集でつなぎに使えます。</li>
   </ul>
 </section>
 
 <section id="where">
-  <div class="sec-head"><span class="sec-num">04</span><h2>どこで撮るか</h2></div>
+  <div class="sec-head"><span class="sec-num">05</span><h2>どこで撮るか</h2></div>
   <p class="sec-note">1本目は「当たりが分かっている場所」で撮って、自分の映像が世の中の水準と比べてどうかを見るのが目的です。</p>
 
   <h3>需要が確認できている条件</h3>
@@ -214,7 +239,7 @@ footer{margin-top:3.5rem;padding-top:1.4rem;border-top:1px solid var(--rule);fon
 </section>
 
 <section id="legal">
-  <div class="sec-head"><span class="sec-num">05</span><h2>撮影のルール</h2></div>
+  <div class="sec-head"><span class="sec-num">06</span><h2>撮影のルール</h2></div>
   <p class="sec-note">後で公開する前提なので、ここは先に押さえておいてください。トラブルの大半はこの3点です。</p>
 
   <ul class="plain">
@@ -226,19 +251,19 @@ footer{margin-top:3.5rem;padding-top:1.4rem;border-top:1px solid var(--rule);fon
 </section>
 
 <section id="check">
-  <div class="sec-head"><span class="sec-num">06</span><h2>当日チェックリスト</h2></div>
+  <div class="sec-head"><span class="sec-num">07</span><h2>当日チェックリスト</h2></div>
   <p class="sec-note">出かける前に、これだけ。</p>
 
   <ul class="check">
     <li><b>風速3m/s以下</b>の日か、天気アプリで確認した</li>
-    <li>スマホの空き容量が<b>64GB以上</b>ある</li>
+    <li>スマホの空き容量を確認し、<b>撮る長さ×本数ぶん</b>空けた（4K30は10GB/時）</li>
     <li><b>モバイルバッテリーとケーブル</b>を持った</li>
     <li>スマホの<b>ケースを外した</b>（発熱対策）</li>
     <li><b>機内モードON</b>にした</li>
-    <li>設定：<b>4K / 30fps / HDRオフ / 横向き</b></li>
+    <li>設定：<b>4K / 30fps / 高効率(HEVC) / HDRオフ / 横向き</b></li>
     <li><b>綿の上着</b>で来た（ナイロンは擦れ音が入る）</li>
     <li>撮影開始前に<b>露出とフォーカスをロック</b>した</li>
-    <li>ルートを決めた（<b>公道だけ</b>・40〜60分・戻ってこないルート）</li>
+    <li>ルートを決めた（<b>公道だけ</b>・<b>30分</b>・戻ってこないルート）</li>
   </ul>
 
   <div class="warn"><b>1本目で完璧を狙わないでください。</b>目的は良い映像を撮ることではなく、<b>「自分がこれを毎週やれるか」を確かめること</b>です。撮ってみて苦痛だったら、その事実のほうが映像より価値のある情報です。<b>その場合は正直に言ってください。作戦を変えます。</b></div>
