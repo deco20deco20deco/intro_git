@@ -8,7 +8,7 @@ X スレッド投稿bot（自アカウント専用）
   3. 結果を posts_log.jsonl に記録（後でインプ/返信クリック率を分析する用）
 
 運用前提:
-  - プロフィールに「創作」を明記（自動化ラベルは任意。付けなくても可）
+  - プロフィール表記は任意（自動化ラベルも任意）。ただしアイコンに実在人物風のAI顔写真は使わない
   - 1アカウント=1言語で運用（--lang で切替）
   - 設定 > プライバシー > 「センシティブな内容を含む可能性のあるものとして投稿をマーク」をON
 
@@ -23,6 +23,12 @@ X スレッド投稿bot（自アカウント専用）
   export X_API_KEY=... X_API_SECRET=... X_ACCESS_TOKEN=... X_ACCESS_SECRET=...
   python bot.py              # ドライラン（生成のみ・投稿しない）
   python bot.py --post       # 実投稿
+  python bot.py --post --image-dir images --image-rate 0.5   # 1本目に画像を付けるA/Bテスト
+  python metrics.py          # 投稿後24h以降に実行。画像有無・型・言語別のインプを集計
+
+画像(images/)の方針:
+  - 雰囲気画像のみ（スマホの通知の光、ワイングラス2つ、ホテルの廊下、指輪 等）
+  - 人物の顔、LINE/メールのスクショ風画像（捏造証拠に見えるもの）は入れない
 """
 
 import argparse
@@ -147,7 +153,30 @@ def validate(thread: Thread) -> list[str]:
     return errors
 
 
-def post_thread(thread: Thread) -> list[str]:
+IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
+
+
+def pick_image(image_dir: str | None, rate: float) -> Path | None:
+    """rate の確率で images/ からランダムに1枚選ぶ（A/Bテスト用）"""
+    if not image_dir or random.random() >= rate:
+        return None
+    files = [f for f in Path(image_dir).iterdir() if f.suffix.lower() in IMAGE_EXTS]
+    return random.choice(files) if files else None
+
+
+def upload_media(path: Path) -> str:
+    """画像アップロード。tweepy の v1.1 media_upload を使用
+    （X側でメディアアップロードAPIの移行が進んでいるため、失敗時は tweepy を最新化）"""
+    import tweepy
+
+    auth = tweepy.OAuth1UserHandler(
+        os.environ["X_API_KEY"], os.environ["X_API_SECRET"],
+        os.environ["X_ACCESS_TOKEN"], os.environ["X_ACCESS_SECRET"],
+    )
+    return str(tweepy.API(auth).media_upload(filename=str(path)).media_id)
+
+
+def post_thread(thread: Thread, image: Path | None = None) -> list[str]:
     import tweepy
 
     x = tweepy.Client(
@@ -157,7 +186,8 @@ def post_thread(thread: Thread) -> list[str]:
         access_token_secret=os.environ["X_ACCESS_SECRET"],
     )
     ids = []
-    first = x.create_tweet(text=thread.hook)
+    media_ids = [upload_media(image)] if image else None
+    first = x.create_tweet(text=thread.hook, media_ids=media_ids)
     ids.append(first.data["id"])
     parent = ids[0]
     for reply in thread.replies:
@@ -178,6 +208,8 @@ def main() -> int:
     ap.add_argument("--post", action="store_true", help="実際に投稿する（未指定はドライラン）")
     ap.add_argument("--theme", help="テーマを直接指定")
     ap.add_argument("--lang", choices=list(LANGS), default="ja", help="出力言語")
+    ap.add_argument("--image-dir", help="1本目に添付する画像フォルダ")
+    ap.add_argument("--image-rate", type=float, default=0.5, help="画像を付ける確率（A/B用）")
     ap.add_argument("--retries", type=int, default=3)
     args = ap.parse_args()
 
@@ -199,12 +231,15 @@ def main() -> int:
     for i, t in enumerate([thread.hook, *thread.replies], 1):
         print(f"--- {i} ({x_weight(t)}/{MAX_WEIGHT}) ---\n{t}\n")
 
-    ids = post_thread(thread) if args.post else []
+    image = pick_image(args.image_dir, args.image_rate)
+    print(f"[画像] {image.name if image else 'なし'}")
+    ids = post_thread(thread, image) if args.post else []
     log({
         "ts": datetime.now().strftime("%Y%m%d%H%M%S"),
         "theme": theme,
         "lang": args.lang,
         "pattern": pattern,
+        "image": image.name if image else None,
         "posted": args.post,
         "tweet_ids": ids,
         "hook": thread.hook,
