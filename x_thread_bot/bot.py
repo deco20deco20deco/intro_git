@@ -8,7 +8,8 @@ X スレッド投稿bot（自アカウント専用）
   3. 結果を posts_log.jsonl に記録（後でインプ/返信クリック率を分析する用）
 
 運用前提:
-  - プロフィールに「創作」「自動投稿」を明記し、X設定で自動化ラベルを付ける
+  - プロフィールに「創作」を明記（自動化ラベルは任意。付けなくても可）
+  - 1アカウント=1言語で運用（--lang で切替）
   - 設定 > プライバシー > 「センシティブな内容を含む可能性のあるものとして投稿をマーク」をON
 
 やらないこと（X自動化ルール違反・凍結リスク回避のため意図的に未実装）:
@@ -39,7 +40,17 @@ from pydantic import BaseModel, Field
 
 MODEL = "claude-opus-5-5"
 LOG_PATH = Path(__file__).parent / "posts_log.jsonl"
-MAX_WEIGHT = 280          # X の文字数上限（全角=2, 半角=1 換算）
+MAX_WEIGHT = 280          # X の文字数上限（twitter-text の重み換算）
+
+# 対応言語。note は現地化の指示（翻訳ではなく現地ネイティブが書いた体裁にする）
+LANGS = {
+    "ja": {"name": "日本語", "note": "LINE・義実家・社内チャットなど日本の生活感を出す"},
+    "en": {"name": "English (US)", "note": "US setting. Use iMessage, Venmo, HOA, Thanksgiving etc. End hook with a cue like '🧵👇' or 'it gets worse 👇'"},
+    "hi": {"name": "हिन्दी (Devanagari)", "note": "インドの家族観（ジョイントファミリー、義母、お見合い婚、WhatsApp）を前提に。カースト・宗教対立には触れない"},
+    "ru": {"name": "Русский", "note": "ロシア語圏の生活感（Telegram、ダーチャ、義母）。政治・戦争には触れない"},
+    "th": {"name": "ภาษาไทย", "note": "タイの生活感（LINE、ミアノーイ文化、ソンクラーン）。王室には一切触れない"},
+    "zh": {"name": "繁體中文（台灣）", "note": "台湾の生活感（LINE、婆家、夜市）。X利用者が多い台湾・香港向けに繁体字で書く。政治には触れない"},
+}
 REPLY_INTERVAL_SEC = 8    # 連投判定を避けるためのリプ間隔
 
 # 下世話系テーマ（創作の修羅場・恋愛・不倫・夜の話）。実在人物は扱わない
@@ -76,7 +87,8 @@ SYSTEM_PROMPT = """あなたはX（旧Twitter）で修羅場・恋愛・不倫�
 - 1本目は状況や場面だけを見せて、オチは絶対に書かない。最後は自然に続きを促す（『続きは下に』『ここからが本番↓』など、毎回言い回しを変える）。
 - 続きは時系列で緊張を高め、最後の投稿でオチ（どんでん返し・スカッと・ゾッと）を必ず回収する。
 - 一人称の語り口で、セリフを多めに。具体的な小道具（LINEの通知、香水、レシート等）を入れると読まれる。
-- 各投稿は全角140字以内。改行を使って読みやすく。
+- 各投稿は短く。日本語・中国語は140字以内、英語・ロシア語・ヒンディー語・タイ語は270文字以内。改行を使って読みやすく。
+- 指定された言語で、その国のネイティブが書いた体裁にする（翻訳調は禁止）。人名・小道具・慣習はその国のものにする。
 
 禁止事項:
 - 実在の人物・芸能人・企業・地名を特定できる形で出すこと（名誉毀損リスク）。
@@ -92,11 +104,18 @@ class Thread(BaseModel):
 
 
 def x_weight(text: str) -> int:
-    """X の文字数カウント近似（全角・CJK=2, それ以外=1）"""
-    return sum(2 if unicodedata.east_asian_width(c) in ("W", "F", "A") else 1 for c in text)
+    """X の文字数カウント（twitter-text v3 準拠の近似）
+    U+0000-U+10FF（ラテン・キリル・デーヴァナーガリー・タイ文字など）と一部記号=1、
+    それ以外（CJK・絵文字など）=2。URL短縮は考慮しない（URLは禁止しているため）"""
+    def w(c: str) -> int:
+        cp = ord(c)
+        if cp <= 0x10FF or 0x2000 <= cp <= 0x200D or 0x2010 <= cp <= 0x201F or 0x2032 <= cp <= 0x2037:
+            return 1
+        return 2
+    return sum(w(c) for c in unicodedata.normalize("NFC", text))
 
 
-def generate_thread(client: anthropic.Anthropic, theme: str, pattern: str) -> Thread:
+def generate_thread(client: anthropic.Anthropic, theme: str, pattern: str, lang: str) -> Thread:
     resp = client.messages.parse(
         model=MODEL,
         max_tokens=16000,
@@ -104,7 +123,11 @@ def generate_thread(client: anthropic.Anthropic, theme: str, pattern: str) -> Th
         system=SYSTEM_PROMPT,
         messages=[{
             "role": "user",
-            "content": f"テーマ: {theme}\nフックの型: {pattern}\nスレッドを1本作ってください。",
+            "content": (
+                f"出力言語: {LANGS[lang]['name']}\n現地化の指示: {LANGS[lang]['note']}\n"
+                f"テーマ（日本語の原案。出力言語の国に置き換えて翻案すること）: {theme}\n"
+                f"フックの型: {pattern}\nスレッドを1本作ってください。"
+            ),
         }],
         output_format=Thread,
     )
@@ -154,6 +177,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--post", action="store_true", help="実際に投稿する（未指定はドライラン）")
     ap.add_argument("--theme", help="テーマを直接指定")
+    ap.add_argument("--lang", choices=list(LANGS), default="ja", help="出力言語")
     ap.add_argument("--retries", type=int, default=3)
     args = ap.parse_args()
 
@@ -163,7 +187,7 @@ def main() -> int:
 
     thread, errors = None, []
     for _ in range(args.retries):
-        thread = generate_thread(client, theme, pattern)
+        thread = generate_thread(client, theme, pattern, args.lang)
         errors = validate(thread)
         if not errors:
             break
@@ -171,7 +195,7 @@ def main() -> int:
         print("検証NG:", errors, file=sys.stderr)
         return 1
 
-    print(f"[テーマ] {theme}\n[型] {pattern}\n")
+    print(f"[言語] {args.lang}\n[テーマ] {theme}\n[型] {pattern}\n")
     for i, t in enumerate([thread.hook, *thread.replies], 1):
         print(f"--- {i} ({x_weight(t)}/{MAX_WEIGHT}) ---\n{t}\n")
 
@@ -179,6 +203,7 @@ def main() -> int:
     log({
         "ts": datetime.now().strftime("%Y%m%d%H%M%S"),
         "theme": theme,
+        "lang": args.lang,
         "pattern": pattern,
         "posted": args.post,
         "tweet_ids": ids,
