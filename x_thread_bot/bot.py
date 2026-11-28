@@ -25,6 +25,7 @@ X スレッド投稿bot（自アカウント専用）
   python bot.py --post       # 実投稿
   python bot.py --post --image-dir images --image-rate 0.5   # 1本目に画像を付けるA/Bテスト
   python metrics.py          # 投稿後24h以降に実行。画像有無・型・言語別のインプを集計
+  python gen_images.py --per-scene 2   # 画像20枚を無料枠で生成（Cloudflare Workers AI）
 
 画像(images/)の方針:
   - 雰囲気画像のみ（スマホの通知の光、ワイングラス2つ、ホテルの廊下、指輪 等）
