@@ -53,21 +53,21 @@ SCENES = {
     "two_wine_glasses": "two half-finished wine glasses on a hotel room table, one with a faint lipstick mark",
     "hotel_corridor": "a dim hotel corridor at night with a single door slightly open, warm light leaking out",
     "removed_ring": "a wedding ring left alone on a bathroom sink next to a running faucet",
-    "receipt": "a crumpled restaurant receipt for two on a kitchen counter, unreadable text",
+    "receipt": "a crumpled paper receipt on a kitchen counter, blurred, out of focus",
     "car_parking": "a parked car in a dark parking lot at night, wet asphalt reflecting neon signs",
     "empty_dining": "a family dining table with one untouched dinner plate and a cold cup of tea",
     "suitcase": "a half-packed suitcase on an unmade bed in early morning light",
     "rain_window": "rain on a window at night with blurred city lights behind it",
-    "perfume": "an unfamiliar perfume bottle on a man's office desk next to a laptop",
+    "perfume": "an unfamiliar perfume bottle alone on an empty office desk at night, desk lamp on",
 }
 
 
-def generate(account_id: str, token: str, prompt: str, seed: int) -> bytes:
+def generate(account_id: str, token: str, prompt: str) -> bytes:
     url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{MODEL}"
     r = requests.post(
         url,
         headers={"Authorization": f"Bearer {token}"},
-        json={"prompt": prompt, "steps": STEPS, "seed": seed},
+        json={"prompt": prompt, "steps": STEPS},  # seed は非対応（400になる）
         timeout=120,
     )
     if r.status_code == 429:
@@ -97,7 +97,7 @@ def main() -> int:
                 print(f"上限 {args.max} 枚に到達したので終了")
                 return 0
             try:
-                img = generate(account_id, token, f"{scene}, {STYLE}", seed=int(time.time()) + i)
+                img = generate(account_id, token, f"{scene}, {STYLE}")
             except Exception as e:  # 無料枠切れ等はここで止める（課金はされない）
                 print(f"[stop] {name}_{i}: {e}", file=sys.stderr)
                 return 1
